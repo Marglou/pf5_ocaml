@@ -10,20 +10,15 @@ type vector = coord2D
 type angle = float
 
 let translate (v : vector) (p : point) : point =
-  (* failwith "À compléter" *)
   {
     x = p.x +. v.x;
     y = p.y +. v.y
   }
 
 let rad_of_deg (a : angle) : angle =
-  (* failwith "À compléter" *)
-  a *. (Float.pi /. 180.)
-
-
+  a *. Float.pi /. 180.0
 
 let deg_of_rad (a : angle) : angle =
-  (* failwith "À compléter" *)
   a /. (Float.pi /. 180.)
   
 
