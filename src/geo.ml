@@ -10,16 +10,38 @@ type vector = coord2D
 type angle = float
 
 let translate (v : vector) (p : point) : point =
-  failwith "À compléter"
+  (* failwith "À compléter" *)
+  {
+    x = p.x +. v.x;
+    y = p.y +. v.y
+  }
 
 let rad_of_deg (a : angle) : angle =
-  failwith "À compléter"
+  (* failwith "À compléter" *)
+  a *. (Float.pi /. 180.)
+
+
 
 let deg_of_rad (a : angle) : angle =
-  failwith "À compléter"
+  (* failwith "À compléter" *)
+  a /. (Float.pi /. 180.)
+  
 
 let rotate (c : point) (alpha : angle) (p : point) : point =
-  failwith "À compléter"
+  (* failwith "À compléter" *)
+  let angle_rad = rad_of_deg alpha  in 
+  let cos_a = cos(angle_rad) in
+  let sin_a = sin(angle_rad) in
+  let u,v = c.x, c.y in 
+  let x, y = p.x, p.y in 
+
+  {
+    x = u +. (x -. u) *. cos_a -. (y -. v) *. sin_a;
+    y = v +. (x -. u) *. sin_a +. (y -. v) *. cos_a
+  }
+
+  
+
   
 type transformation =
   Translate of vector
