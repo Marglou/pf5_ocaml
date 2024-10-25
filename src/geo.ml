@@ -23,7 +23,6 @@ let deg_of_rad (a : angle) : angle =
   
 
 let rotate (c : point) (alpha : angle) (p : point) : point =
-  (* failwith "À compléter" *)
   let angle_rad = rad_of_deg alpha  in 
   let cos_a = cos(angle_rad) in
   let sin_a = sin(angle_rad) in
@@ -35,15 +34,16 @@ let rotate (c : point) (alpha : angle) (p : point) : point =
     y = v +. (x -. u) *. sin_a +. (y -. v) *. cos_a
   }
 
-  
-
-  
+   
 type transformation =
   Translate of vector
 | Rotate of point * angle
 
 let transform (t : transformation) (p : point) : point =
-  failwith "À compléter"
+
+  match t with 
+  | Translate vector -> translate vector p
+  | Rotate (point, angle) -> rotate point angle p
 
 type rectangle = {
     x_min : float;
@@ -53,10 +53,15 @@ type rectangle = {
   }
 
 let in_rectangle (r : rectangle) (p : point) : bool =
-  failwith "À compléter"
+  p.x >= r.x_min && p.x <= r.x_max && p.y >= r.y_min && p.y <= r.y_max
 
 let corners (r :rectangle) : point list =
-  failwith "À compléter"
+  [
+    { x = r.x_min; y = r.y_min };
+    { x = r.x_min; y = r.y_max };
+    { x = r.x_max; y = r.y_min };
+    { x = r.x_max; y = r.y_max }
+  ]
   
 let rectangle_of_list (pl : point list) : rectangle = 
   failwith "À compléter"

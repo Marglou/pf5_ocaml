@@ -10,25 +10,19 @@ type vector = coord2D
 type angle = float
 
 let translate (v : vector) (p : point) : point =
-  (* failwith "À compléter" *)
   {
     x = p.x +. v.x;
     y = p.y +. v.y
   }
 
 let rad_of_deg (a : angle) : angle =
-  (* failwith "À compléter" *)
-  a *. (Float.pi /. 180.)
-
-
+  a *. Float.pi /. 180.0
 
 let deg_of_rad (a : angle) : angle =
-  (* failwith "À compléter" *)
   a /. (Float.pi /. 180.)
   
 
 let rotate (c : point) (alpha : angle) (p : point) : point =
-  (* failwith "À compléter" *)
   let angle_rad = rad_of_deg alpha  in 
   let cos_a = cos(angle_rad) in
   let sin_a = sin(angle_rad) in
@@ -40,15 +34,16 @@ let rotate (c : point) (alpha : angle) (p : point) : point =
     y = v +. (x -. u) *. sin_a +. (y -. v) *. cos_a
   }
 
-  
-
-  
+   
 type transformation =
   Translate of vector
 | Rotate of point * angle
 
 let transform (t : transformation) (p : point) : point =
-  failwith "À compléter"
+
+  match t with 
+  | Translate vector -> translate vector p
+  | Rotate (point, angle) -> rotate point angle p
 
 type rectangle = {
     x_min : float;
@@ -58,10 +53,19 @@ type rectangle = {
   }
 
 let in_rectangle (r : rectangle) (p : point) : bool =
-  failwith "À compléter"
+  p.x >= r.x_min && p.x <= r.x_max && p.y >= r.y_min && p.y <= r.y_max
 
 let corners (r :rectangle) : point list =
-  failwith "À compléter"
+  [
+    { x = r.x_min; y = r.y_min };
+    { x = r.x_min; y = r.y_max };
+    { x = r.x_max; y = r.y_min };
+    { x = r.x_max; y = r.y_max }
+  ]
   
 let rectangle_of_list (pl : point list) : rectangle = 
-  failwith "À compléter"
+  let x_min = List.fold_left (fun acc p -> min acc p.x) infinity pl in
+  let x_max = List.fold_left (fun acc p -> max acc p.x) neg_infinity pl in
+  let y_min = List.fold_left (fun acc p -> min acc p.y) infinity pl in
+  let y_max = List.fold_left (fun acc p -> max acc p.y) neg_infinity pl in
+  { x_min; x_max; y_min; y_max }
