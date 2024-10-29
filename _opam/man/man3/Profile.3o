@@ -1,4 +1,4 @@
-.TH "Profile" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Profile" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Profile \- Compiler performance recording
 .SH Module

@@ -1,4 +1,4 @@
-.TH "Ephemeron.GenHashTable" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Ephemeron.GenHashTable" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Ephemeron.GenHashTable \- Hash tables on generic containers with notion of death and aliveness.
 .SH Module

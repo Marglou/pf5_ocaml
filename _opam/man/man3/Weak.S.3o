@@ -1,4 +1,4 @@
-.TH "Weak.S" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Weak.S" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Weak.S \- The output signature of the functor Weak.Make.
 .SH Module type

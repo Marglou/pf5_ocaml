@@ -3,9 +3,9 @@
  *
  *)
 
-let config_file = "/home/marglou/projet-pf5-2425/_opam/lib/findlib.conf";;
+let config_file = "/home/leocs/projet-pf5-2425/_opam/lib/findlib.conf";;
 
-let ocaml_stdlib = "/home/marglou/projet-pf5-2425/_opam/lib/ocaml";;
+let ocaml_stdlib = "/home/leocs/projet-pf5-2425/_opam/lib/ocaml";;
 
 let ocaml_ldconf = Filename.concat ocaml_stdlib "ld.conf";;
 

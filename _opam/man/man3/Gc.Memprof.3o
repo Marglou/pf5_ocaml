@@ -1,4 +1,4 @@
-.TH "Gc.Memprof" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Gc.Memprof" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Gc.Memprof \- Memprof is a sampling engine for allocated memory words.
 .SH Module

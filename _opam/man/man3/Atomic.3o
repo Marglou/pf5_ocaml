@@ -1,4 +1,4 @@
-.TH "Atomic" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Atomic" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Atomic \- This module provides a purely sequential implementation of the concurrent atomic references provided by the Multicore OCaml standard library:
 .SH Module

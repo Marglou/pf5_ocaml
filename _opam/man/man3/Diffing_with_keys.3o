@@ -1,4 +1,4 @@
-.TH "Diffing_with_keys" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Diffing_with_keys" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Diffing_with_keys \- When diffing lists where each element has a distinct key, we can refine the diffing patch by introducing two composite edit moves: swaps and moves.
 .SH Module

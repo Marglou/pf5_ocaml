@@ -1,4 +1,4 @@
-.TH "Bigarray" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Bigarray" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Bigarray \- Large, multi-dimensional, numerical arrays.
 .SH Module

@@ -63,5 +63,14 @@ let corners (r :rectangle) : point list =
     { x = r.x_max; y = r.y_max }
   ]
   
-let rectangle_of_list (pl : point list) : rectangle = 
-  failwith "À compléter"
+let rectangle_of_list (p : point list) : rectangle = 
+  match p with
+  | [] -> failwith "La liste de points est vide"
+  | { x = x_ref; y = y_ref } :: reste ->
+      let (x_min, x_max, y_min, y_max) =
+        List.fold_left
+          (fun (xmin, xmax, ymin, ymax) { x; y } -> (min xmin x, max xmax x, min ymin y, max ymax y))
+          (x_ref, x_ref, y_ref, y_ref)
+          reste
+      in
+      { x_min; x_max; y_min; y_max }

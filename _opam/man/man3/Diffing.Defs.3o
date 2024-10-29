@@ -1,4 +1,4 @@
-.TH "Diffing.Defs" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Diffing.Defs" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Diffing.Defs \- The core types of a diffing implementation
 .SH Module type

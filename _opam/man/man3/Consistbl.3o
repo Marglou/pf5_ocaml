@@ -1,4 +1,4 @@
-.TH "Consistbl" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Consistbl" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Consistbl \- Consistency tables: for checking consistency of module CRCs
 .SH Module

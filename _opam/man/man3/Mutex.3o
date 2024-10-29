@@ -1,4 +1,4 @@
-.TH "Mutex" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Mutex" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Mutex \- Locks for mutual exclusion.
 .SH Module

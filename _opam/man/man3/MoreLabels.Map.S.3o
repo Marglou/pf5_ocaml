@@ -1,4 +1,4 @@
-.TH "MoreLabels.Map.S" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "MoreLabels.Map.S" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 MoreLabels.Map.S \- Output signature of the functor MoreLabels.Map.Make.
 .SH Module type

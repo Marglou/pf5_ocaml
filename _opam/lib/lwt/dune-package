@@ -1,6 +1,5 @@
 (lang dune 3.16)
 (name lwt)
-(version 5.7.0)
 (sections (lib .) (libexec .) (doc ../../doc/lwt) (stublibs ../stublibs))
 (files
  (lib
@@ -170,7 +169,8 @@
    unix/lwt_unix.ml
    unix/lwt_unix.mli))
  (libexec (lwt.cmxs unix/lwt_unix.cmxs))
- (doc (CHANGES LICENSE.md README.md odoc-pages/index.mld))
+ (doc
+  (CHANGES LICENSE.md README.md odoc-pages/index.mld odoc-pages/manual.mld))
  (stublibs (dlllwt_unix_stubs.so)))
 (library
  (name lwt)

@@ -1,4 +1,4 @@
-.TH "Ephemeron.Kn" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Ephemeron.Kn" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Ephemeron.Kn \- Ephemerons with arbitrary number of keys of the same type.
 .SH Module

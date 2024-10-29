@@ -1,4 +1,4 @@
-.TH "Event" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Event" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Event \- First-class synchronous communication.
 .SH Module

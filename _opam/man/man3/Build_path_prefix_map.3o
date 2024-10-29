@@ -1,4 +1,4 @@
-.TH "Build_path_prefix_map" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Build_path_prefix_map" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Build_path_prefix_map \- Rewrite paths for reproducible builds
 .SH Module

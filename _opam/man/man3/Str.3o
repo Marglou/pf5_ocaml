@@ -1,4 +1,4 @@
-.TH "Str" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Str" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Str \- Regular expressions and high-level string processing
 .SH Module

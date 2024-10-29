@@ -1,4 +1,4 @@
-.TH "Set.S" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Set.S" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Set.S \- Output signature of the functor Set.Make.
 .SH Module type

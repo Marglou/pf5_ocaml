@@ -148,7 +148,7 @@ let auto_pause timeout =
 
 exception Timeout
 
-let timeout d = sleep d >>= fun () -> Lwt.fail Timeout
+let timeout d = sleep d >>= fun () -> raise Timeout
 
 let with_timeout d f = Lwt.pick [timeout d; Lwt.apply f ()]
 
@@ -583,7 +583,7 @@ let wrap_syscall event ch action =
   | Retry_write ->
     register_action Write ch action
   | e when Lwt.Exception_filter.run e ->
-    Lwt.fail e
+    Lwt.reraise e
 
 (* +-----------------------------------------------------------------+
    | Basic file input/output                                         |
@@ -637,7 +637,7 @@ let wait_read ch =
          Lwt.return_unit
        else
          register_action Read ch ignore)
-    Lwt.fail
+    Lwt.reraise
 
 external stub_read : Unix.file_descr -> Bytes.t -> int -> int -> int = "lwt_unix_read"
 external read_job : Unix.file_descr -> Bytes.t -> int -> int -> int job = "lwt_unix_read_job"
@@ -695,7 +695,7 @@ let wait_write ch =
          Lwt.return_unit
        else
          register_action Write ch ignore)
-    Lwt.fail
+    Lwt.reraise
 
 external stub_write : Unix.file_descr -> Bytes.t -> int -> int -> int = "lwt_unix_write"
 external write_job : Unix.file_descr -> Bytes.t -> int -> int -> int job = "lwt_unix_write_job"
@@ -1035,7 +1035,7 @@ let file_exists name =
     (fun e ->
        match e with
        | Unix.Unix_error _ -> Lwt.return_false
-       | _ -> Lwt.fail e) [@ocaml.warning "-4"]
+       | _ -> Lwt.reraise e) [@ocaml.warning "-4"]
 
 external utimes_job : string -> float -> float -> unit job =
   "lwt_unix_utimes_job"
@@ -1141,7 +1141,7 @@ struct
       (fun e ->
          match e with
          | Unix.Unix_error _ -> Lwt.return_false
-         | _ -> Lwt.fail e) [@ocaml.warning "-4"]
+         | _ -> Lwt.reraise e) [@ocaml.warning "-4"]
 
 end
 
@@ -1409,7 +1409,7 @@ let files_of_directory path =
               (fun () -> readdir_n handle chunk_size)
               (fun exn ->
                  closedir handle >>= fun () ->
-                 Lwt.fail exn) >>= fun entries ->
+                 Lwt.reraise exn) >>= fun entries ->
             if Array.length entries < chunk_size then begin
               state := LDS_done;
               closedir handle >>= fun () ->
@@ -1424,7 +1424,7 @@ let files_of_directory path =
               (fun () -> readdir_n handle chunk_size)
               (fun exn ->
                  closedir handle >>= fun () ->
-                 Lwt.fail exn) >>= fun entries ->
+                 Lwt.reraise exn) >>= fun entries ->
             if Array.length entries < chunk_size then begin
               state := LDS_done;
               closedir handle >>= fun () ->
@@ -2389,7 +2389,7 @@ let () =
 let _waitpid flags pid =
   Lwt.catch
     (fun () -> Lwt.return (Unix.waitpid flags pid))
-    Lwt.fail
+    Lwt.reraise
 
 let waitpid =
   if Sys.win32 then

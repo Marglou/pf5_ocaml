@@ -212,6 +212,8 @@ doc: [
   "_build/install/default/doc/lwt/README.md"
   "_build/install/default/doc/lwt/odoc-pages/index.mld"
     {"odoc-pages/index.mld"}
+  "_build/install/default/doc/lwt/odoc-pages/manual.mld"
+    {"odoc-pages/manual.mld"}
 ]
 libexec: [
   "_build/install/default/lib/lwt/lwt.cmxs"

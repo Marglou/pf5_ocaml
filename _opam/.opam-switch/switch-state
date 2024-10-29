@@ -28,7 +28,7 @@ installed: [
   "host-system-other.1"
   "lambda-term.3.3.2"
   "logs.0.7.0"
-  "lwt.5.7.0"
+  "lwt.5.8.0"
   "lwt_react.1.2.0"
   "mew.0.1.0"
   "mew_vi.0.5.0"

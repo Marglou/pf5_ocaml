@@ -1,4 +1,4 @@
-.TH "Float.Array" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Float.Array" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Float.Array \- Float arrays with packed representation.
 .SH Module

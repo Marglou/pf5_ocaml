@@ -1,4 +1,4 @@
-.TH "Numbers" 3 2024-10-22 OCamldoc "OCaml library"
+.TH "Numbers" 3 2024-10-29 OCamldoc "OCaml library"
 .SH NAME
 Numbers \- Modules about numbers, some of which satisfy Identifiable.S.
 .SH Module
