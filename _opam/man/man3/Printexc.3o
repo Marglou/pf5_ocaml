@@ -1,4 +1,4 @@
-.TH "Printexc" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Printexc" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Printexc \- Facilities for printing exceptions and inspecting current call stack.
 .SH Module

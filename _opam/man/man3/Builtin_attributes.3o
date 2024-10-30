@@ -1,4 +1,4 @@
-.TH "Builtin_attributes" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Builtin_attributes" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Builtin_attributes \- Support for some of the builtin attributes
 .SH Module

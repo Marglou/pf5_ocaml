@@ -1,4 +1,4 @@
-.TH "Diffing.Define" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Diffing.Define" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Diffing.Define \- Define(Defs) creates the diffing types from the types defined in Defs and the functors that need to be instantatied with the diffing algorithm parameters
 .SH Module

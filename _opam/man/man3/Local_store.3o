@@ -1,4 +1,4 @@
-.TH "Local_store" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Local_store" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Local_store \- This module provides some facilities for creating references (and hash tables) which can easily be snapshoted and restored to an arbitrary version.
 .SH Module

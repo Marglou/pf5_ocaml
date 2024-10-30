@@ -1,4 +1,4 @@
-.TH "Syntaxerr" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Syntaxerr" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Syntaxerr \- Auxiliary type for reporting syntax errors
 .SH Module

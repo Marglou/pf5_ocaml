@@ -1,4 +1,4 @@
-.TH "MoreLabels.Hashtbl.SeededS" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "MoreLabels.Hashtbl.SeededS" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 MoreLabels.Hashtbl.SeededS \- The output signature of the functor MoreLabels.Hashtbl.MakeSeeded.
 .SH Module type

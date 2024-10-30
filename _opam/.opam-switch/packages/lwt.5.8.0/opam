@@ -27,7 +27,6 @@ depends: [
   "ocplib-endian"
 ]
 depopts: ["base-threads" "base-unix" "conf-libev"]
-available: os-family != "windows" | "ocaml-version" < "5.2"
 build: [
   ["dune" "subst"] {dev}
   [

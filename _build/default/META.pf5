@@ -1,6 +1,0 @@
-description = ""
-requires = "fmt"
-archive(byte) = "pf5.cma"
-archive(native) = "pf5.cmxa"
-plugin(byte) = "pf5.cma"
-plugin(native) = "pf5.cmxs"

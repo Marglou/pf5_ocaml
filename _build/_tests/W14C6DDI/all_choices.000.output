@@ -1,7 +1,0 @@
-[failure] À compléter
-          Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-          Called from Dune__exe__Test_absint.(fun) in file "test/test_absint.ml", line 223, characters 41-57
-          Called from Dune__exe__Test_base.add_tests_1.(fun).test in file "test/test_base.ml", line 10, characters 55-61
-          Called from Alcotest_engine__Core.Make.protect_test.(fun) in file "src/alcotest-engine/core.ml", line 186, characters 17-23
-          Called from Alcotest_engine__Monad.Identity.catch in file "src/alcotest-engine/monad.ml", line 24, characters 31-35
-          

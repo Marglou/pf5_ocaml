@@ -1,4 +1,4 @@
-.TH "Stream" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Stream" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Stream \- Streams and parsers.
 .SH Module

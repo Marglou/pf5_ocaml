@@ -1,4 +1,4 @@
-.TH "MoreLabels.Set.S" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "MoreLabels.Set.S" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 MoreLabels.Set.S \- Output signature of the functor MoreLabels.Set.Make.
 .SH Module type

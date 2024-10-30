@@ -1,4 +1,4 @@
-.TH "In_channel" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "In_channel" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 In_channel \- Input channels.
 .SH Module

@@ -1,4 +1,4 @@
-.TH "Set.Make" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Set.Make" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Set.Make \- Functor building an implementation of the set structure given a totally ordered type.
 .SH Module

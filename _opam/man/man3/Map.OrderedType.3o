@@ -1,4 +1,4 @@
-.TH "Map.OrderedType" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Map.OrderedType" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Map.OrderedType \- Input signature of the functor Map.Make.
 .SH Module type

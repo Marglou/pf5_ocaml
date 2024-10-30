@@ -1,4 +1,4 @@
-.TH "Location" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Location" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Location \- Source code locations (ranges of positions), used in parsetree.
 .SH Module

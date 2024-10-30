@@ -1,4 +1,4 @@
-.TH "Ephemeron.S" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Ephemeron.S" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Ephemeron.S \- The output signature of the functors Ephemeron.K1.Make and Ephemeron.K2.Make.
 .SH Module type

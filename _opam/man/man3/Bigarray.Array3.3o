@@ -1,4 +1,4 @@
-.TH "Bigarray.Array3" 3 2024-10-29 OCamldoc "OCaml library"
+.TH "Bigarray.Array3" 3 2024-10-30 OCamldoc "OCaml library"
 .SH NAME
 Bigarray.Array3 \- Three-dimensional arrays.
 .SH Module
