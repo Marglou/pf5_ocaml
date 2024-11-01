@@ -15,9 +15,8 @@ let rec is_deterministic (prog : program) : bool =
   | Repeat (_, subprog) :: reste -> is_deterministic subprog && is_deterministic reste  
   | Either _ :: _ -> false  
 
-let unfold_repeat (prog : program) : program = 
-  match prog with
-  |
+let unfold_repeat (prog : program) : program =
+  failwith "À compléter"
 
 let run_det (prog : program) (p : point) : point list =
   failwith "À compléter"
