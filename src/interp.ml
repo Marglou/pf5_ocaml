@@ -8,11 +8,16 @@ type instruction =
 | Either of program * program 
 and program = instruction list
 
-let is_deterministic (prog : program) : bool =
-  failwith "À compléter"
+let rec is_deterministic (prog : program) : bool =
+  match prog with
+  | [] -> true  
+  | Move _ :: reste -> is_deterministic reste  
+  | Repeat (_, subprog) :: reste -> is_deterministic subprog && is_deterministic reste  
+  | Either _ :: _ -> false  
 
-let unfold_repeat (prog : program) : program =
-  failwith "À compléter"
+let unfold_repeat (prog : program) : program = 
+  match prog with
+  |
 
 let run_det (prog : program) (p : point) : point list =
   failwith "À compléter"
