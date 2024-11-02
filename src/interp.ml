@@ -58,7 +58,7 @@ and prog_repeat (n : int)(sousprog : program)(start_position : point) : point li
     |[]->[]
     |last :: _ -> position @ prog_repeat (n-1) sousprog last                        (*last est le dernier point ajouté (car on a fait rev) qu'on utilise comme position de départ à l'itération suivante*)
 
-let target_reached_sdet (prog : program) (p : point) (target : rectangle) : bool =
+let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
   failwith "À compléter"
   
 let run (prog : program) (p : point) : point list =
