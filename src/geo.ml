@@ -40,7 +40,6 @@ type transformation =
 | Rotate of point * angle
 
 let transform (t : transformation) (p : point) : point =
-
   match t with 
   | Translate vector -> translate vector p
   | Rotate (point, angle) -> rotate point angle p

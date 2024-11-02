@@ -15,6 +15,8 @@ let rec is_deterministic (prog : program) : bool =
   | Repeat (_, subprog) :: reste -> is_deterministic subprog && is_deterministic reste  
   | Either _ :: _ -> false  
 
+
+
   exception NonDeterministicProgram
 
   let rec unfold_repeat (prog : program) : program =
@@ -30,10 +32,31 @@ let rec is_deterministic (prog : program) : bool =
     let flat_sousprog = unfold_repeat sousprog in
       List.init n (fun _ -> flat_sousprog) 
       |> List.flatten
-  
 
-let run_det (prog : program) (p : point) : point list =
-  failwith "À compléter"
+
+
+      let rec run_det (prog : program) (p : point) : point list =
+        List.fold_left
+          (fun positions instr ->
+            let current_pos = List.hd (List.rev positions) in
+            positions @ execute_prog current_pos instr)
+          [p]
+          prog
+      
+      and prog_repeat (n : int)(sousprog : program)(start_position : point) : point list=
+        if n<=0 then []
+        else
+          let position = run_det sousprog start_position in
+          match List.rev position with
+          |[]->[]
+          |last :: _ -> position @ prog_repeat (n-1) sousprog last
+      
+      and execute_prog (p : point) (i : instruction) : point list =
+        match i with
+        | Move t -> [transform t p]  (* d/ geo.ml *)
+        | Repeat (n, sousprog) -> prog_repeat n sousprog p  
+        | Either _ -> raise NonDeterministicProgram  (* Lève une exception si Either est rencontré *)
+
 
 let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
   failwith "À compléter"
