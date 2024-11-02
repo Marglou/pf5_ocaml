@@ -15,8 +15,22 @@ let rec is_deterministic (prog : program) : bool =
   | Repeat (_, subprog) :: reste -> is_deterministic subprog && is_deterministic reste  
   | Either _ :: _ -> false  
 
-let unfold_repeat (prog : program) : program =
-  failwith "À compléter"
+  exception NonDeterministicProgram
+
+  let rec unfold_repeat (prog : program) : program =
+    List.flatten (
+      List.map (function
+        | Move t -> [Move t]                                  (* move reste pareil, on l'ajoute tel quel au nvx prog *)
+        | Repeat (n, sousprog) -> repeat_to_flat n sousprog   (* fonction auxiliaire pour derouler  *)
+        | Either _ -> raise NonDeterministicProgram           (*on lève une exception pour either car doit être deterministe *)
+      ) prog          (*applique function a prog avec map*)
+    )
+  
+  and repeat_to_flat (n : int) (sousprog : program) : program =
+    let flat_sousprog = unfold_repeat sousprog in
+      List.init n (fun _ -> flat_sousprog) 
+      |> List.flatten
+  
 
 let run_det (prog : program) (p : point) : point list =
   failwith "À compléter"
