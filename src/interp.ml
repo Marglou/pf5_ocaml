@@ -57,7 +57,7 @@ let rec run_det (prog : program) (p : point) : point list =
           let new_positions = List.fold_left (fun tmp instr ->  (*on itère sur chaque instruction dans le sous programme*)
             let new_pos = execute_prog current_pos instr in     (*on execute chaque instruction sur la position courante*)
             match new_pos with                                  (*on regarde si on a des nouveaux points*)
-            | [] -> tmp
+            | [] -> tmp                                         (*si pas de nouveaux points, on retourne la liste des positions -> tmp*)
             | last_pos :: _ -> tmp @ new_pos) [] sousprog in  (*on ajoute les nouveaux points à la liste des positions*)
           repeat (n - 1) (List.hd (List.rev new_positions)) (tmp @ new_positions)   (*on continue la boucle avec la dernière position*)
       in
@@ -65,13 +65,15 @@ let rec run_det (prog : program) (p : point) : point list =
     
 
 
-
+(* 4.3 : premier rendu *)
 let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
   let points_visited = run_det prog p in  (* Obtenir la liste des points visités avec la fonction précédente *)
   match List.rev points_visited with    (* Prendre les points visités dans l'ordre inverse pour avoir la dernière position *)
   | [] -> false
   | last_pos :: _ -> in_rectangle target last_pos (* Vérifier si la dernière position est dans le rectangle cible *)
   
+  
+
   
 let run (prog : program) (p : point) : point list =
   let rec execute_prog prog p visited_positions =
@@ -80,18 +82,19 @@ let run (prog : program) (p : point) : point list =
     | Move t :: rest ->  (* Déplacer le point *)
         let new_pos = transform t p in
         execute_prog rest new_pos (visited_positions @ [new_pos])  (* Ajouter la nouvelle position à la fin *)
-    | Repeat (n, subprog) :: rest ->  (* Répéter le sous-programme *)
-        let rec repeat n current_pos tmp =
+
+    | Repeat (n, sousprog) :: rest ->  (* Répéter le sous-programme *)
+      let rec repeat n current_pos tmp =
           if n <= 0 then tmp  (* Si n <= 0, retourner la liste tmp qui stocke les points de repeat *)
           else
-            let new_positions = execute_prog subprog current_pos [] in  (* Exécuter le sous-programme *)
-            match List.rev new_positions with
-            | [] -> tmp  (* Si aucune position, retourner la liste tmp qui stocke les points de repeat *)
-            | last_pos :: _ -> 
-                repeat (n - 1) last_pos (tmp @ new_positions)  (* Répéter avec la dernière position *)
-        in
-        let positions_after_repeat = repeat n p [] in
-        execute_prog rest (List.hd (List.rev positions_after_repeat)) positions_after_repeat  (* Continuer avec la dernière position *)
+            let new_positions = List.fold_left (fun tmp instr ->
+              let new_pos = execute_prog [instr] current_pos [] in  (* Exécuter chaque instruction *)
+              match new_pos with
+              | [] -> tmp
+              | last_pos :: _ -> tmp @ new_pos) [] sousprog in
+            repeat (n - 1) (List.hd (List.rev new_positions)) (tmp @ new_positions)
+        in execute_prog rest p (visited_positions @ repeat n p [])  (* Ajouter les points visités par repeat à la liste *)
+
     | Either (p1, p2) :: rest ->  (* Exécuter l'un des deux programmes *)
         let choose_prog = if Random.bool () then p1 else p2 in
         execute_prog (choose_prog @ rest) p visited_positions  (* Ajouter le programme choisi à la suite *)
@@ -105,4 +108,9 @@ let all_choices (prog : program) : program list =
   failwith "À compléter"
 
 let target_reached (prog : program) (p : point) (r : rectangle) : bool =
-  failwith "À compléter"
+  (* failwith "À compléter" *)
+  let points_visited = all_choices prog in
+  let rec verif_points point = 
+    match point with
+    | [] -> true
+    | point :: reste -> if in_rectangle r point then verif_point reste else false
