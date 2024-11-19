@@ -28,7 +28,6 @@ let rotate (c : point) (alpha : angle) (p : point) : point =
   let sin_a = sin(angle_rad) in
   let u,v = c.x, c.y in 
   let x, y = p.x, p.y in 
-
   {
     x = u +. (x -. u) *. cos_a -. (y -. v) *. sin_a;
     y = v +. (x -. u) *. sin_a +. (y -. v) *. cos_a

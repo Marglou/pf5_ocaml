@@ -28,10 +28,10 @@ let rec is_deterministic (prog : program) : bool =
       ) prog                                                  (*applique function a prog avec map*)
     )
   
-  and repeat_to_flat (n : int) (sousprog : program) : program =
-    let flat_sousprog = unfold_repeat sousprog in
-      List.init n (fun _ -> flat_sousprog) 
-      |> List.flatten
+  and repeat_to_flat (n : int) (sousprog : program) : program =   (* fonction aux pour dérouler le repeat*)
+    let flat_sousprog = unfold_repeat sousprog in                 (* déroule une fois le repeat *)
+      List.init n (fun _ -> flat_sousprog)                        (* copie de n fois flat_sousprog <=> effectue le repeat  *)
+      |> List.flatten                                             (* aplatie la liste *)
 
 
 (*EXERCICE 4.2*)
@@ -108,9 +108,9 @@ let all_choices (prog : program) : program list =
   failwith "À compléter"
 
 let target_reached (prog : program) (p : point) (r : rectangle) : bool =
-  (* failwith "À compléter" *)
-  let points_visited = all_choices prog in
+  failwith "À compléter"
+  (* let points_visited = all_choices prog in
   let rec verif_points point = 
     match point with
     | [] -> true
-    | point :: reste -> if in_rectangle r point then verif_point reste else false
+    | point :: reste -> if in_rectangle r point then verif_point reste else false *)
