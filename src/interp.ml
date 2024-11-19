@@ -6,7 +6,7 @@ type instruction =
   Move of transformation
 | Repeat of int * program
 | Either of program * program 
-and program = instruction list
+and program = instruction list (* and -> pour définition récursive mutuelle *)
 
 let rec is_deterministic (prog : program) : bool =
   match prog with
@@ -17,7 +17,7 @@ let rec is_deterministic (prog : program) : bool =
 
 
 
-  exception NonDeterministicProgram
+  exception NonDeterministicProgram  (* init exception pour raise *)
 
   let rec unfold_repeat (prog : program) : program =
     List.flatten (                                            (*combines sous listes en une liste "homogène"*)
@@ -30,52 +30,36 @@ let rec is_deterministic (prog : program) : bool =
   
   and repeat_to_flat (n : int) (sousprog : program) : program =   (* fonction aux pour dérouler le repeat*)
     let flat_sousprog = unfold_repeat sousprog in                 (* déroule une fois le repeat *)
-      List.init n (fun _ -> flat_sousprog)                        (* copie de n fois flat_sousprog <=> effectue le repeat  *)
-      |> List.flatten                                             (* aplatie la liste *)
+      List.init n (fun _ -> flat_sousprog)                        (* copie de n fois flat_sousprog <=> effectue le repeat | fun_ -> fonction anonyme *)
+      |> List.flatten                                             (* aplatie la liste dans le cas de repeat (repeat) ou plusieurs prog *)
 
 
 (*EXERCICE 4.2*)
 
 let rec run_det (prog : program) (p : point) : point list =
-  List.fold_left                                        (*itère chaque instruction dans prog*) (*forme: List.fold_left (fonction) [liste points] programme*)
+  List.fold_left                                        (*itère chaque instruction dans prog*) 
     (fun positions instr ->                       
-      let current_pos = List.hd (List.rev positions) in (*La position courrante est le dernier point ajouté a la liste de points soit head du revers de la liste*)
+      let current_pos = List.hd (List.rev positions) in (*La position courrante est le dernier point ajouté a la liste de points soit head du revers de la liste *)
       positions @ execute_prog current_pos instr)       (*on ajoute a positions le nouveau point visité *)
     [p]                                                 (*on apply le programme depuis le premier point p*)
-    prog                                                (*instructions qui vont être traitées par les fonctions auxiliaires depuis p pour avoir les autres points*)
+    (unfold_repeat prog  )                              (* on unfold le programme doonné *)
 
   and execute_prog (p : point) (i : instruction) : point list = (*interprète instruction sur un point*)
     match i with                                                (*regarde quelle instruction on traite*)
     | Move t -> [transform t p]                                 (* dans geo.ml *)
-    | Repeat (n, sousprog) -> prog_repeat n sousprog p          (*traitement en boucle pour Repeat*)
-    | Either _ -> raise NonDeterministicProgram                 (* Lève une exception si Either est rencontré *)
-
-    and prog_repeat (n : int) (sousprog : program) (start_position : point) : point list =
-      let rec repeat n current_pos tmp =                         (*fonction auxiliaire pour répéter n fois le sous programme*) 
-        if n <= 0 then tmp                                        (*si n <= 0, on retourne la liste des positions -> tmp*)                     
-        else
-          let new_positions = List.fold_left (fun tmp instr ->  (*on itère sur chaque instruction dans le sous programme*)
-            let new_pos = execute_prog current_pos instr in     (*on execute chaque instruction sur la position courante*)
-            match new_pos with                                  (*on regarde si on a des nouveaux points*)
-            | [] -> tmp                                         (*si pas de nouveaux points, on retourne la liste des positions -> tmp*)
-            | last_pos :: _ -> tmp @ new_pos) [] sousprog in  (*on ajoute les nouveaux points à la liste des positions*)
-          repeat (n - 1) (List.hd (List.rev new_positions)) (tmp @ new_positions)   (*on continue la boucle avec la dernière position*)
-      in
-      repeat n start_position []
+    | Repeat (n, sousprog) -> run_det (repeat_to_flat n sousprog ) p     (*traitement en boucle pour Repeat*)
+    | Either _ -> raise NonDeterministicProgram                 (*Lève une exception si Either est rencontré*)
     
 
-
-(* 4.3 : premier rendu *)
 let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
   let points_visited = run_det prog p in  (* Obtenir la liste des points visités avec la fonction précédente *)
-  match List.rev points_visited with    (* Prendre les points visités dans l'ordre inverse pour avoir la dernière position *)
+  match List.rev points_visited with      (* Prendre les points visités dans l'ordre inverse pour avoir la dernière position *)
   | [] -> false
   | last_pos :: _ -> in_rectangle target last_pos (* Vérifier si la dernière position est dans le rectangle cible *)
   
   
-
   
-let run (prog : program) (p : point) : point list =
+(* let run (prog : program) (p : point) : point list =
   let rec execute_prog prog p visited_positions =
     match prog with
     | [] -> visited_positions  (* Retourner les positions visitées *)
@@ -98,8 +82,32 @@ let run (prog : program) (p : point) : point list =
     | Either (p1, p2) :: rest ->  (* Exécuter l'un des deux programmes *)
         let choose_prog = if Random.bool () then p1 else p2 in
         execute_prog (choose_prog @ rest) p visited_positions  (* Ajouter le programme choisi à la suite *)
-  in execute_prog prog p [p]
+  in execute_prog prog p [p] *)
+
+
+  let rec unfold_repeat_nonDet (prog : program) : program =
+    List.flatten (                                            (*combines sous listes en une liste "homogène"*)
+      List.map (function
+        | Move t -> [Move t]                                  (* move reste pareil, on l'ajoute tel quel au nvx prog *)
+        | Repeat (n, sousprog) -> repeat_to_flat n sousprog   (* fonction auxiliaire pour derouler  *)
+        | Either (p1, p2) -> [Either (unfold_repeat_nonDet p1, unfold_repeat_nonDet p2)]  (*on unfold les deux programmes de either*)
+        ) prog                                                 
+    )
   
+    let rec run_det (prog : program) (p : point) : point list =
+      List.fold_left                                        (*itère chaque instruction dans prog*) 
+        (fun positions instr ->                       
+          let current_pos = List.hd (List.rev positions) in (*La position courrante est le dernier point ajouté a la liste de points soit head du revers de la liste *)
+          positions @ execute_prog current_pos instr)       (*on ajoute a positions le nouveau point visité *)
+        [p]                                                 (*on apply le programme depuis le premier point p*)
+        ( unfold_repeat prog )                              (* on unfold le programme doonné *)
+    
+      and execute_prog (p : point) (i : instruction) : point list = (*interprète instruction sur un point*)
+        match i with                                                (*regarde quelle instruction on traite*)
+        | Move t -> [transform t p]                                 (* dans geo.ml *)
+        | Repeat (n, sousprog) -> run_det (repeat_to_flat n sousprog ) p     (*traitement en boucle pour Repeat*)
+        | Either (p1, p2) :: rest ->  let choose_prog = if Random.bool () then p1 else p2 in
+        execute_prog (choose_prog @ rest) p visited_positions  (* Ajouter le programme choisi à la suite *)
 
 
 

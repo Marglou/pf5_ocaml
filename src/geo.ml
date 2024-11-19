@@ -66,9 +66,9 @@ let rectangle_of_list (p : point list) : rectangle =
   | [] -> failwith "La liste de points est vide"
   | { x = x_ref; y = y_ref } :: reste ->
       let (x_min, x_max, y_min, y_max) =
-        List.fold_left
+        List.fold_left         (* function , tmp , liste des éléments *)
           (fun (xmin, xmax, ymin, ymax) { x; y } -> (min xmin x, max xmax x, min ymin y, max ymax y))
           (x_ref, x_ref, y_ref, y_ref)
           reste
       in
-      { x_min; x_max; y_min; y_max }
+      { x_min; x_max; y_min; y_max } 
