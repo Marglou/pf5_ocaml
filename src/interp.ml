@@ -24,7 +24,9 @@ let rec is_deterministic (prog : program) : bool =
       List.map (function
         | Move t -> [Move t]                                  (* move reste pareil, on l'ajoute tel quel au nvx prog *)
         | Repeat (n, sousprog) -> repeat_to_flat n sousprog   (* fonction auxiliaire pour derouler  *)
-        | Either _ -> raise NonDeterministicProgram           (*on lève une exception pour either car doit être deterministe *)
+        (* | Either _ -> raise NonDeterministicProgram           on lève une exception pour either car doit être deterministe *)
+        | Either (p1, p2) -> [Either (p1, p2)]                  
+
       ) prog                                                  (*applique function a prog avec map*)
     )
   
@@ -59,7 +61,6 @@ let target_reached_det (prog : program) (p : point) (target : rectangle) : bool 
   
   
 
-
   let rec unfold_repeat_nonDet (prog : program) : program =
     List.flatten (                                            (*combines sous listes en une liste "homogène"*)
       List.map (function
@@ -81,11 +82,10 @@ let rec run (prog : program) (p : point) : point list =
   and execute_prog (p : point) (i : instruction) : point list = (*interprète instruction sur un point*)
     match i with                                                (*regarde quelle instruction on traite*)
       | Move t -> [transform t p]                                 (* dans geo.ml *)
-      | Repeat (n, sousprog) -> run_det (repeat_to_flat n sousprog ) p     (*traitement en boucle pour Repeat*)
+      | Repeat (n, sousprog) -> run (repeat_to_flat n sousprog ) p     (*traitement en boucle pour Repeat*)
       | Either (p1, p2) ->                                          (* Exécuter l'un des deux programmes *)
         let choose_prog = if Random.bool () then p1 else p2 in
       run (choose_prog) p                                     (* Ajouter le programme choisi à la suite *)
-
 
 
 
