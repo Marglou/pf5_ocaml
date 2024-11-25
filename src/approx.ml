@@ -11,12 +11,9 @@ let sample (rect : rectangle) : point =
 
 let transform_rect (t : transformation) (r : rectangle) : rectangle =
 
-  let corner_rec = corners r 
-  in let transform_corner = List.map (transform t ) corner_rec
-  in rectangle_of_list transform_corner 
-  (* match t with
-  | Translate _ -> rectangle_of_list transform_corner 
-  | Rotate (point, angle) -> rectangle_of_list transform_corner *)
+  let corner_rec = corners r                                  (*sommets du rectangle *)
+  in let transform_corner = List.map (transform t) corner_rec (*applique transformation t a chaque point*)
+  in rectangle_of_list transform_corner                       (*crée rectangle avec points transformés*)
       
                       
 let rec run_rect (prog : program) (r : rectangle) : rectangle list =
@@ -43,20 +40,48 @@ let rec run_rect (prog : program) (r : rectangle) : rectangle list =
 
 
 let inclusion (r : rectangle) (t : rectangle) : bool =
-  if (r.x_min >= t.x_min && r.x_max <= t.x_max && r.y_min >= t.y_min && r.y_max <= t.y_max) then true
-  else if (r.x_min <= t.x_min && r.x_max >= t.x_max && r.y_min <= t.y_min && r.y_max >= t.y_max) then true
-  else false
+  r.x_min >= t.x_min && r.x_max <= t.x_max 
+  && r.y_min >= t.y_min && r.y_max <= t.y_max
+  
 
-let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : bool =
-  failwith "À compléter"
-  (* let list_prog = all_choices prog in
-  let rec verif_rect rect = 
-    match rect with
-    | [] -> true
-    | last_rect :: _ -> inclusion last_rect target *)
+  let target_reached_rect (prog : program) (initial_rect : rectangle) (target_rect : rectangle) : bool =
+    let all_prog_choices = all_choices prog in  (* tous les programmes déterministes de prog*)
+    let points_to_test = corners initial_rect in  (* sommets = points de départ *)
+    List.for_all
+      (fun p_start ->
+         List.for_all
+           (fun prog_det ->
+              let visited_points = run_det prog_det p_start in  (* Obtenir tous les points visités *)
+              match List.rev visited_points with
+              | [] -> false                                         (* Aucun point visité = pb *)
+              | last_pos :: _ -> in_rectangle target_rect last_pos  (*dernière position in target? *)
+           ) all_prog_choices
+      ) points_to_test
+  
 
-let run_polymorphe (transform : transformation -> 'a -> 'a) (prog : program) (i : 'a) : 'a list =
-  failwith "À compléter"
+
+let rec run_polymorphe (apply_transform : transformation -> 'a -> 'a) (prog : program) (state : 'a) : 'a list =
+    match prog with
+    | [] -> [state]  
+    | Move t :: reste ->
+    let new_state = apply_transform t state in
+    state :: run_polymorphe apply_transform reste new_state
+
+    | Repeat (n, sousprog) :: reste ->
+    let rec repeat_states n current_state =
+      if n <= 0 then [current_state]
+      else
+        let repeated_states = run_polymorphe apply_transform sousprog current_state 
+        in match List.rev repeated_states with
+        | [] -> []
+        | last_state :: _ ->
+            List.rev repeated_states @ repeat_states (n - 1) last_state
+            in let repeated_result = repeat_states n state 
+            in repeated_result @ run_polymorphe apply_transform reste (List.hd (List.rev repeated_result))
+
+    | Either (p1, p2) :: _ ->
+    failwith "error, non-det"
+
 
 let rec over_approximate (prog : program) (r : rectangle) : rectangle =
   failwith "À compléter"
