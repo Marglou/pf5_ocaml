@@ -31,12 +31,7 @@ let rec run_rect (prog : program) (r : rectangle) : rectangle list =
       | Either (p1, p2) ->                                          
         let choose_prog = if Random.bool () then p1 else p2 in
       run_rect (choose_prog) r 
-        
-      (* A REVOIR CAR DUPLICATION DE LA FONCTION DANS CE FICHIER ET INTERP *)
-      and repeat_to_flat (n : int) (sousprog : program) : program =   
-      let flat_sousprog = unfold_repeat sousprog in                
-        List.init n (fun _ -> flat_sousprog)                        
-        |> List.flatten                                             
+                                        
 
 
 let inclusion (r : rectangle) (t : rectangle) : bool =
