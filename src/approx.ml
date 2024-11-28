@@ -35,51 +35,45 @@ let rec run_rect (prog : program) (r : rectangle) : rectangle list =
 
 
 let inclusion (r : rectangle) (t : rectangle) : bool =
-  r.x_min >= t.x_min && r.x_max <= t.x_max 
-  && r.y_min >= t.y_min && r.y_max <= t.y_max
-  
+  if (r.x_min >= t.x_min && r.x_max <= t.x_max && r.y_min >= t.y_min && r.y_max <= t.y_max) then true
+  (* else if (r.x_min <= t.x_min && r.x_max >= t.x_max && r.y_min <= t.y_min && r.y_max >= t.y_max) then true *)
+  else false
 
-  let target_reached_rect (prog : program) (initial_rect : rectangle) (target_rect : rectangle) : bool =
-    let all_prog_choices = all_choices prog in  (* tous les programmes déterministes de prog*)
-    let points_to_test = corners initial_rect in  (* sommets = points de départ *)
-    List.for_all
-      (fun p_start ->
-         List.for_all
-           (fun prog_det ->
-              let visited_points = run_det prog_det p_start in  (* Obtenir tous les points visités *)
-              match List.rev visited_points with
-              | [] -> false                                         (* Aucun point visité = pb *)
-              | last_pos :: _ -> in_rectangle target_rect last_pos  (*dernière position in target? *)
-           ) all_prog_choices
-      ) points_to_test
-  
+let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : bool =
+  let list_prog = all_choices prog in
+  let rect_visited prog = 
+    let rect_visited = run_rect prog r in
+    match List.rev rect_visited with
+    | [] -> false
+    | last_rect :: _ -> inclusion last_rect target
+  in   List.for_all rect_visited list_prog (* apply notre sous fonction check_program a notre liste de possibilités all_prog_choices *)
 
 
 let rec run_polymorphe (apply_transform : transformation -> 'a -> 'a) (prog : program) (state : 'a) : 'a list =
-    match prog with
-    | [] -> [state]  
-    | Move t :: reste ->
-    let new_state = apply_transform t state in
-    state :: run_polymorphe apply_transform reste new_state
+  List.fold_left
+  (fun positions instr ->
+    let current_state = List.hd (List.rev positions) in
+  positions @ execute_prog apply_transform current_state instr)
+  [state] (* La liste commence avec l'état initial *)
+  (unfold_repeat prog)
 
-    | Repeat (n, sousprog) :: reste ->
-    let rec repeat_states n current_state =
-      if n <= 0 then [current_state]
-      else
-        let repeated_states = run_polymorphe apply_transform sousprog current_state 
-        in match List.rev repeated_states with
-        | [] -> []
-        | last_state :: _ ->
-            List.rev repeated_states @ repeat_states (n - 1) last_state
-            in let repeated_result = repeat_states n state 
-            in repeated_result @ run_polymorphe apply_transform reste (List.hd (List.rev repeated_result))
+  and execute_prog (apply_transform : transformation -> 'a -> 'a) (state : 'a) (instr : instruction) : 'a list =
+    match instr with
+    | Move t -> [apply_transform t state] (* Applique une seule transformation *)
+    | Repeat (n, subprog) ->
+      let repeated_prog = repeat_to_flat n subprog in
+    run_polymorphe apply_transform repeated_prog state
+    | Either (p1, p2) ->
+      let chosen_prog = if Random.bool () then p1 else p2 in
+    run_polymorphe apply_transform chosen_prog state
 
-    | Either (p1, p2) :: _ ->
-    failwith "error, non-det"
-
-
+    
+  
 let rec over_approximate (prog : program) (r : rectangle) : rectangle =
   failwith "À compléter"
 
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
-  failwith "À compléter"
+  (* failwith "À compléter" *)
+  let liste_run = run_rect prog r in
+  let rect_target = over_approximate prog target in
+  inclusion (List.hd (List.rev liste_run)) rect_target
