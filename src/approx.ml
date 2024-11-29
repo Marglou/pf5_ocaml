@@ -67,11 +67,36 @@ let rec run_polymorphe (apply_transform : transformation -> 'a -> 'a) (prog : pr
       let chosen_prog = if Random.bool () then p1 else p2 in
     run_polymorphe apply_transform chosen_prog state
 
-    
-  
-let rec over_approximate (prog : program) (r : rectangle) : rectangle =
-  failwith "À compléter"
 
+(* renvoie le plus petit rectangle contenant les 2 rectangles de base  *)
+let union_rectangle (r1 : rectangle) (r2 : rectangle) : rectangle = 
+  {
+    x_min = min r1.x_min r2.x_min;
+    y_min = min r1.y_min r2.y_min;
+    x_max = max r1.x_max r2.x_max;
+    y_max = max r1.y_max r2.y_max;
+  }
+
+
+let rec over_approximate (prog : program) (r : rectangle) : rectangle =
+  (* Déroule le programme avec unfold_repeat pour transformer Repeat et Either *)
+  let unfolded_prog = unfold_repeat prog in
+  List.fold_left
+    (fun current_rect instr -> execute_instr current_rect instr)
+    r
+    unfolded_prog
+
+  and execute_instr (r : rectangle) (instr : instruction) : rectangle =
+    match instr with
+    | Move t -> transform_rect t r
+    | Repeat (_, _) -> failwith "Unfold_repeat devrait déjà avoir transformé Repeat."
+    | Either (p1, p2) -> 
+        let rect_p1 = over_approximate p1 r in
+        let rect_p2 = over_approximate p2 r in
+        union_rectangle rect_p1 rect_p2
+
+
+          
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
   (* failwith "À compléter" *)
   let liste_run = run_rect prog r in
