@@ -6,5 +6,8 @@ module Approx = Pf5__Approx
 (** @canonical Pf5.Geo *)
 module Geo = Pf5__Geo
 
+(** @canonical Pf5.Graphic *)
+module Graphic = Pf5__Graphic
+
 (** @canonical Pf5.Interp *)
 module Interp = Pf5__Interp

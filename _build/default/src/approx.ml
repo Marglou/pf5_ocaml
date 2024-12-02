@@ -98,6 +98,5 @@ let rec over_approximate (prog : program) (r : rectangle) : rectangle =
 
           
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
-  (* let liste_run = run_rect prog r in *)
   let rect_target = over_approximate prog r in
   inclusion  rect_target target
