@@ -8,6 +8,7 @@ type instruction =
 | Either of program * program 
 and program = instruction list (* and -> pour définition récursive mutuelle *)
 
+
 let rec is_deterministic (prog : program) : bool =
   match prog with
   | [] -> true  

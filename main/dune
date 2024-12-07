@@ -1,0 +1,6 @@
+(executable
+ (name main )
+ ; (public_name )
+ (libraries fmt pf5 graphics)
+ (flags (:standard -open Pf5))
+ )

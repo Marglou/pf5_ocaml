@@ -1,23 +1,8 @@
-(* graphic.mli *)
-open Graphics
+val run : unit -> unit
+val draw_lines : unit -> unit
+(* val draw_graduations : unit -> unit *)
+val parse_arguments : unit -> unit
+val draw_point : Geo.point -> unit
+val draw_rectangle : Geo.rectangle -> unit
 
-(* Fonction pour ouvrir la fenêtre graphique *)
-val open_window : int -> int -> unit
 
-(* Fonction pour fermer la fenêtre graphique *)
-val close_window : unit -> unit
-
-(* Fonction pour dessiner un rectangle *)
-val draw_rectangle : int -> int -> int -> int -> unit
-
-(* Fonction pour dessiner un cercle *)
-val draw_circle : int -> int -> int -> unit
-
-(* Fonction pour dessiner une ligne *)
-val draw_line : int -> int -> int -> int -> unit
-
-(* Fonction pour définir la couleur du dessin *)
-val set_color : int -> int -> int -> unit
-
-(* Fonction pour remplir la fenêtre avec une couleur *)
-val fill_background : int -> int -> int -> unit

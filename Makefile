@@ -23,3 +23,7 @@ top :
 .PHONY : clean
 clean :
 	@ $(opam_exec) dune clean
+
+.PHONY : run
+run :
+	@ $(opam_exec) dune exec main/main.exe
