@@ -1,6 +1,16 @@
+; (executable
+;  (name main )
+;  ; (public_name )
+;  (libraries fmt pf5 graphics)
+;  (flags (:standard -open Pf5))
+;  )
+
 (executable
- (name main )
- ; (public_name )
- (libraries fmt pf5 graphics)
- (flags (:standard -open Pf5))
+  (name main )
+  ; (public_name )
+  (libraries fmt pf5 graphics)
+  (flags (:standard -open Pf5))
+  (modes exe)
  )
+
+; _build/default/main/main.exe

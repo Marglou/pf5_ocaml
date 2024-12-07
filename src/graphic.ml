@@ -3,7 +3,6 @@ open Geo
 open Interp
 open Approx
 
-
 (* Options pour la configuration *)
 let size = ref (800, 600)  (* Taille par défaut de la fenêtre HxW *)
 let bg_color = ref (255, 255, 255)  (* Couleur de fond par défaut *)
@@ -13,13 +12,13 @@ let point_color = ref (0, 20, 0)  (* Couleur du point par défaut *)
 
 (* ARG : programmes possibles *)
 let arg = ref 1
-let prog1 = [Move (Translate { x = 100.; y = 100. })]  (* Déplacer un point à (100, 100) *)
+let prog1 = [(Move (Translate { x = 100.; y = 100. }))]  (* Déplacer un point à (100, 100) *)
 let prog2 = 2
 let prog3 = 3
 
 
 (* Fonction pour configurer la fenêtre graphique *)
-let run () =
+let set_window () =
   let width, height = !size in
   open_graph (Printf.sprintf " %dx%d" width height);
   let r, g, b = !bg_color in
@@ -113,35 +112,14 @@ let draw_rectangle rect =
     
 
 (* Fonction pour exécuter un programme donné et afficher les résultats dans la fenêtre graphique *)
-(* let execute_prog apply_transform prog state =
-  let target = over_approximate prog state in  (* Calcul de l'approximation du programme *)
-  
-  (* Fonction récursive pour dessiner des rectangles à partir des résultats *)
-  (* let rec draw_rectangles = function
-    | [] -> ()
-    | r :: rs -> 
-        draw_rectangle (int_of_float r.x_min, int_of_float r.y_min) (int_of_float (r.x_max -. r.x_min), int_of_float (r.y_max -. r.y_min));  (* Dessiner un rectangle *)
-        draw_rectangles rs  (* Appel récursif pour dessiner les autres rectangles *)
-  in *)
-  draw_rectangle (int_of_float target.x_min, int_of_float target.y_min) (int_of_float (target.x_max -. target.x_min), int_of_float (target.y_max -. target.y_min));  (* Dessiner un rectangle *)
+let execute_prog apply_transform prog state =
+  failwith "Not implemented yet."
+  (* Dessiner le rectangle target 
+  faire le run polymorphe et voir avec les arguments
+  faire une fonction dessin_polymorphe 
+  faire une boucle pour dessiner les etapes de la transformation 
+   *)
 
-
-  (* Point de départ (au centre de la fenêtre) *)
-  let starting_point = (400, 300) in
-
-  (* Appliquer les transformations et obtenir les positions *)
-  let positions = run_polymorphe apply_transform prog state in
-
-  (* Fonction récursive pour dessiner les points à partir des positions *)
-  let rec draw_positions = function
-    | [] -> ()  (* Si la liste est vide, ne rien faire *)
-    | p :: ps -> 
-        draw_point p;  (* Dessiner un point *)
-        draw_positions ps  (* Appel récursif pour dessiner les autres points *)
-  in
-
-  (* Dessiner les positions calculées *)
-  draw_positions positions *)
 
 
 (* 
@@ -149,14 +127,60 @@ let draw_rectangle rect =
   run_polymorphe transform_rect [Move TRANS({2,1})] {0,1,0,1}
 *)
 
+(* Effacer l'écran en remplissant la fenêtre avec la couleur de fond *)
+let clear_screen () =
+  let width, height = !size in
+  let r, g, b = !bg_color in
+  set_color (rgb r g b);
+  fill_rect 0 0 width height
+
+  
+  let delay seconds =
+    let start_time = Sys.time () in
+    let rec loop () =
+      if Sys.time () -. start_time < seconds then
+        loop ()  (* Continue à boucler jusqu'à ce que le délai soit atteint *)
+    in
+    loop ()
+  
+  (* Exemple d'utilisation de la fonction delay *)
+  let move_point () =
+    let rec loop x y step =
+      (* Effacer l'écran *)
+      clear_screen ();
+  
+      (* Dessiner les lignes de division et autres éléments *)
+      draw_lines ();
+  
+      (* Dessiner le rectangle pour visualiser *)
+      draw_rectangle { Geo.x_min = 100.; Geo.x_max = 150.; Geo.y_min = 100.; Geo.y_max = 150. };
+  
+      (* Dessiner le point à la position actuelle *)
+      draw_point { Geo.x = x; Geo.y = y };
+  
+      (* Attendre un court instant *)
+      delay 0.05;  (* Pause de 50 millisecondes *)
+  
+      (* Calculer la nouvelle position du point (exemple de translation simple) *)
+      let new_x = x +. 5. in
+      let new_y = y +. 2. in
+  
+      (* Répéter l'animation jusqu'à ce que le point atteigne la limite de l'écran *)
+      if new_x < 750. then loop new_x new_y (step + 1)
+      else ()
+    in
+    (* Point de départ *)
+    loop 100. 100. 0
+  
+
 
 (* Main *)
-let () =
-  (* try *)
-    (* Analyser les arguments en ligne de commande *)
+let run () =
+
+  (* Analyser les arguments en ligne de commande *)
     parse_arguments ();
     (* Initialiser la fenêtre *)
-    run ();
+    set_window ();
     (* Dessiner les lignes graduées et autres éléments *)
     draw_lines ();
 
@@ -169,10 +193,8 @@ let () =
     | 3 -> execute_program prog3
     | _ -> failwith "Donner un numéro pour executer le programme. Use 1, 2, or 3." *)
 
+    move_point ();  (* Appel de la fonction de simulation du mouvement du point *)
+
     (* Attendre que l'utilisateur appuie sur une touche pour fermer la fenêtre *)
     ignore (read_key ());
     close_graph ()
-
-  (* with *)
-  (* | Failure msg -> eprintf "Error: %s\n" msg; exit 1 *)
-  (* | Graphic_failure _ -> eprintf "Graphics error: Check your environment.\n"; exit 1 *)

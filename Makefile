@@ -26,4 +26,5 @@ clean :
 
 .PHONY : run
 run :
-	@ $(opam_exec) dune exec main/main.exe
+	@ $(opam_exec) dune exec main/main.exe -- $(ARGS)
+	# make run ARGS="-size 800x600 -bc 255,0,0"
