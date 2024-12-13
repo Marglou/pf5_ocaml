@@ -59,8 +59,6 @@ let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : 
     [state]
     (unfold_repeat prog)
 
-    
-
 and execute_prog (apply_transform : transformation -> 'a -> 'a) (state : 'a) (instr : instruction) : 'a list =
   match instr with
   | Move t -> [apply_transform t state] (* Applique une seule transformation *)
@@ -82,7 +80,6 @@ let union_rectangle (r1 : rectangle) (r2 : rectangle) : rectangle =
 
 
 let rec over_approximate (prog : program) (r : rectangle) : rectangle =
-  (* Déroule le programme avec unfold_repeat pour transformer Repeat et Either *)
   let unfolded_prog = unfold_repeat prog in
   List.fold_left
     (fun current_rect instr -> execute_instr current_rect instr)
