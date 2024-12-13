@@ -4,7 +4,10 @@ open Interp
 open Approx
 
 (* Options *)
-let size = ref (1000, 800)
+let size = ref (1000, 800) (* ref == variable gloable *)
+(* let width, height = !size *)
+let width = ref 1000
+let height = ref 800
 let bg_color = ref (255, 255, 255)
 let fg_color = ref (0, 25, 0)
 let rect_color = ref (0, 255, 0)
@@ -29,10 +32,10 @@ let prog3 = [
 
   (* Centrer les coordonées sur l'axe tracé  *)
 let to_graphic_coords { Geo.x; Geo.y } =
-  let width, height = !size in
+  (* let width, height = !size in *)
   {
-    Geo.x = x +. float_of_int (width / 2);
-    Geo.y = y +. float_of_int (height / 2);
+    Geo.x = x +. float_of_int (!width / 2);
+    Geo.y = y +. float_of_int (!height / 2);
   }
 
 let to_graphic_rect rect =
@@ -130,20 +133,30 @@ let draw_lines () =
   draw_x_graduations width height step grad_length;
   draw_y_graduations width height step grad_length
 
+(* Afficher du texte sur la fenetre graphique *)
+let draw_text x y text =
+  moveto x y;
+  draw_string text
+
 
 (* Fonction pour analyser les arguments *)
 let parse_arguments () =
   let args = Array.to_list Sys.argv in
   let parse_size s =
-    match String.split_on_char 'x' s with
-    | [h; w] -> (int_of_string h, int_of_string w)
-    | _ -> failwith "Invalid size format. Use HeightxWidth (e.g., 800x600)."
+    try
+      match String.split_on_char 'x' s with
+      | [h; w] -> (int_of_string h, int_of_string w)
+      | _ -> raise Not_found
+    with _ ->
+      failwith (Printf.sprintf "Invalid size format: %s. Use HeightxWidth (e.g., 800x600)." s)
+
   in
   let parse_color c =
     match String.split_on_char ',' c with
     | [r; g; b] -> (int_of_string r, int_of_string g, int_of_string b)
     | _ -> failwith "Invalid color format. Use R,G,B (e.g., 255,0,0)."
   in
+  
   let rec parse_options = function
     | [] -> ()
     | "-size" :: value :: rest -> size := parse_size value; parse_options rest
@@ -156,7 +169,11 @@ let parse_arguments () =
     | [last] -> arg := int_of_string last
     | _ -> failwith "Invalid command-line options."
   in
-  parse_options (List.tl args)
+  parse_options (List.tl args);
+  let (w, h) = !size in
+  width := w;  (* var déclarée avec ref := nv valeur *)
+  height := h
+
 
 (* Effacer l'écran *)
 let clear_screen () =
@@ -218,6 +235,10 @@ let execute_prog_point prog state =
     draw_target_point target;
     delay 0.2;
   ) states
+  (* if target_reached prog state target then
+    Printf.printf "Cible atteinte.\n%!"
+  else
+    Printf.printf "Cible non atteinte.\n%!" *)
 
 let execute_prog_rect prog state =
   let states = run_polymorphe transform_rect prog state in
@@ -235,9 +256,11 @@ let execute_prog_rect prog state =
       draw_rectangle rect;
       draw_target_rectangle target;
       delay 0.5;
-    ) states
-
-
+    ) states;
+  if feasible_target_reached prog (List.hd states) target then
+    draw_text 10 (!height-25) "Cible atteinte."   
+  else
+    draw_text 10 10 "Cible non atteinte."
 
 (* Fonction principale *)
 (*  Pour executer
