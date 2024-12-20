@@ -48,9 +48,8 @@ let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : 
     | last_rect :: _ -> inclusion last_rect target
   in   List.for_all rect_visited list_prog (* apply notre sous fonction check_program a notre liste de possibilités all_prog_choices *)
 
-
-  let rec run_polymorphe (apply_transform : transformation -> 'a -> 'a) (prog : program) (state : 'a) : 'a list =
-  List.fold_left
+let rec run_polymorphe (apply_transform : transformation -> 'a -> 'a) (prog : program) (state : 'a) : 'a list =
+    List.fold_left
     (fun positions instr ->
       let current_state = List.hd (List.rev positions) in
       let new_states = execute_prog apply_transform current_state instr in
@@ -59,17 +58,16 @@ let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : 
     [state]
     (unfold_repeat prog)
 
-and execute_prog (apply_transform : transformation -> 'a -> 'a) (state : 'a) (instr : instruction) : 'a list =
-  match instr with
-  | Move t -> [apply_transform t state] (* Applique une seule transformation *)
-  | Repeat (n, subprog) ->
-    let repeated_prog = repeat_to_flat n subprog in
-    run_polymorphe apply_transform repeated_prog state
-  | Either (p1, p2) ->
-    let chosen_prog = if Random.bool () then p1 else p2 in
-    run_polymorphe apply_transform chosen_prog state
-
-(* renvoie le plus petit rectangle contenant les 2 rectangles de base  *)
+    and execute_prog (apply_transform : transformation -> 'a -> 'a) (state : 'a) (instr : instruction) : 'a list =
+      match instr with
+      | Move t -> [apply_transform t state] (* Applique une seule transformation *)
+      | Repeat (n, subprog) ->
+        let repeated_prog = repeat_to_flat n subprog in
+        run_polymorphe apply_transform repeated_prog state
+        | Either (p1, p2) ->
+          let chosen_prog = if Random.bool () then p1 else p2 in
+          run_polymorphe apply_transform chosen_prog state
+      (* renvoie le plus petit rectangle contenant les 2 rectangles de base  *)
 let union_rectangle (r1 : rectangle) (r2 : rectangle) : rectangle = 
   {
     x_min = min r1.x_min r2.x_min;
@@ -80,6 +78,7 @@ let union_rectangle (r1 : rectangle) (r2 : rectangle) : rectangle =
 
 
 let rec over_approximate (prog : program) (r : rectangle) : rectangle =
+  (* Déroule le programme avec unfold_repeat pour transformer Repeat et Either *)
   let unfolded_prog = unfold_repeat prog in
   List.fold_left
     (fun current_rect instr -> execute_instr current_rect instr)
