@@ -135,7 +135,6 @@ let draw_lines () =
   let width, height = !size in
   let step = 50 in  (* Espacement des graduations augmenté *)
   let grad_length = 10 in
-
   draw_axes width height;
   draw_x_graduations width height step grad_length;
   draw_y_graduations width height step grad_length
@@ -247,7 +246,12 @@ let execute_prog_point prog state =
     draw_point { Geo.x; Geo.y };
     draw_target_rectangle rect_target;
     delay 0.2;
-  ) states
+  ) states;
+
+  if target_reached prog state !rect_target then
+    draw_text 10 (!height-25) "Cible atteinte."   
+  else
+    draw_text 10 (!height-25) "Cible non atteinte." 
 
 let execute_prog_rect prog state =
   let states = run_polymorphe transform_rect prog state in
@@ -260,7 +264,12 @@ let execute_prog_rect prog state =
     draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
     draw_target_rectangle rect_target;
     delay 0.2;
-  ) states
+  ) states;
+
+  if target_reached_rect prog state !rect_target then
+    Printf.printf "Target reached!\n%!"
+  else
+    Printf.printf "Target not reached.\n%!"
 
 let execute_prog_point_and_rect prog point_state rect_state =
   let point_states = run_polymorphe transform prog point_state in
@@ -274,6 +283,11 @@ let execute_prog_point_and_rect prog point_state rect_state =
     draw_target_rectangle rect_target;
     delay 0.2;
   ) states
+(* 
+  if target_reached prog point_state rect_target and feasible_target_reached then
+    Printf.printf "Target reached!\n%!"
+  else
+    Printf.printf "Target not reached.\n%!" *)
 
 
 (* ---------------------------------------------------  MAIN ------------------------------------------------------------------------------ *)
@@ -305,6 +319,6 @@ let run () =
     (Printf.printf "Executing in combined mode (points and rectangles).\n%!";
      execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. });
 
-  (* ignore (read_key ()); *)
+  ignore (read_key ());
   close_graph ()
 
