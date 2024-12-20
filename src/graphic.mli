@@ -5,5 +5,3 @@ val draw_point : Geo.point -> unit
 val draw_rectangle : Geo.rectangle -> unit
 
 val run : unit -> unit
-
-
