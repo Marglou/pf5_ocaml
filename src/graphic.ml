@@ -15,7 +15,7 @@ let cr_mode = ref true
 let abs_mode = ref false
 let arg = ref 1
 let print_prog = ref false
-let target = ref { Geo.x_min = 0.; Geo.x_max = 100.; Geo.y_min = 0.; Geo.y_max = 35. }
+let rect_target = ref { Geo.x_min = 0.; Geo.x_max = 100.; Geo.y_min = 0.; Geo.y_max = 35. }
 
 
 (* Programmes *)
@@ -70,7 +70,6 @@ let draw_rectangle rect =
   let width = int_of_float (rect.x_max -. rect.x_min) in
   let height = int_of_float (rect.y_max -. rect.y_min) in
   draw_rect x y width height
-
 
 
 
@@ -158,10 +157,10 @@ let draw_target_rectangle rect_ref =
   draw_rect x y width height
 
 (* --------------------------- PARSE ARGUMENT ---------------------------------------- *)
-let validate_rectangle rect =
-  if not (rect.Geo.x_min <= 0. && rect.Geo.x_max >= 0. && rect.Geo.y_min <= 0. && rect.Geo.y_max >= 0.) then
-    failwith "Le rectangle spécifié ne contient pas l'origine (0, 0)."
-
+let abs_correct rect =
+    if not (rect.Geo.x_min <= 0. && rect.Geo.x_max >= 0. && rect.Geo.y_min <= 0. && rect.Geo.y_max >= 0.) then
+      failwith (Printf.sprintf "Le rectangle spécifié (x_min=%.2f, x_max=%.2f, y_min=%.2f, y_max=%.2f) ne contient pas l'origine (0, 0)." rect.Geo.x_min rect.Geo.x_max rect.Geo.y_min rect.Geo.y_max)
+  
 
 (* Fonction pour analyser les arguments *)
 let parse_arguments () =
@@ -172,13 +171,13 @@ let parse_arguments () =
       | [h; w] -> (int_of_string h, int_of_string w)
       | _ -> raise Not_found
     with _ ->
-      failwith (Printf.sprintf "Invalid size format: %s. Use HeightxWidth (e.g., 800x600)." s)
+      failwith (Printf.sprintf "Format incorrect: %s.  HauteurxLargeur (e.g., 800x600)." s)
 
   in
   let parse_color c =
     match String.split_on_char ',' c with
     | [r; g; b] -> (int_of_string r, int_of_string g, int_of_string b)
-    | _ -> failwith "Invalid color format. Use R,G,B (e.g., 255,0,0)."
+    | _ -> failwith "Format couleur invalide.  R,G,B (e.g., 255,0,0)."
   in
   
   let rec parse_options = function
@@ -196,9 +195,10 @@ let parse_arguments () =
           Geo.y_min = float_of_string y_min;
           Geo.y_max = float_of_string y_max;
         } in
-        validate_rectangle rect;
-        target := rect;
-        abs_mode := true;
+        abs_correct rect;     (* Vérifier si le rectangle contient l'origine *)
+        (* rect_target := rect;  Mettre à jour la cible *)
+        abs_mode := true; (* Activer le mode rectangle *)
+        cr_mode := false; (* Désactiver le mode point *)
         parse_options rest
     | "-print" :: rest -> print_prog := true; parse_options rest
     | [last] -> arg := int_of_string last
@@ -245,6 +245,7 @@ let execute_prog_point prog state =
     clear_screen ();
     draw_lines ();
     draw_point { Geo.x; Geo.y };
+    draw_target_rectangle rect_target;
     delay 0.2;
   ) states
 
@@ -257,6 +258,7 @@ let execute_prog_rect prog state =
     clear_screen ();
     draw_lines ();
     draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
+    draw_target_rectangle rect_target;
     delay 0.2;
   ) states
 
@@ -269,11 +271,12 @@ let execute_prog_point_and_rect prog point_state rect_state =
     draw_lines ();
     draw_point { Geo.x; Geo.y };
     draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
+    draw_target_rectangle rect_target;
     delay 0.2;
   ) states
 
 
-(* --------------------- MAIN ------------------------------------------------------------------------------ *)
+(* ---------------------------------------------------  MAIN ------------------------------------------------------------------------------ *)
 
 let run () =
   parse_arguments ();
