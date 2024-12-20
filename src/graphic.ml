@@ -158,6 +158,11 @@ let draw_target_rectangle rect_ref =
   draw_rect x y width height
 
 (* --------------------------- PARSE ARGUMENT ---------------------------------------- *)
+let validate_rectangle rect =
+  if not (rect.Geo.x_min <= 0. && rect.Geo.x_max >= 0. && rect.Geo.y_min <= 0. && rect.Geo.y_max >= 0.) then
+    failwith "Le rectangle spécifié ne contient pas l'origine (0, 0)."
+
+
 (* Fonction pour analyser les arguments *)
 let parse_arguments () =
   let args = Array.to_list Sys.argv in
@@ -184,15 +189,24 @@ let parse_arguments () =
     | "-rc" :: value :: rest -> rect_color := parse_color value; parse_options rest
     | "-pc" :: value :: rest -> point_color := parse_color value; parse_options rest
     | "-cr" :: rest -> cr_mode := true; parse_options rest
-    | "-abs" :: rest -> cr_mode := false; parse_options rest
+    | "-abs" :: x_min :: y_min :: x_max :: y_max :: rest ->
+        let rect = {
+          Geo.x_min = float_of_string x_min;
+          Geo.x_max = float_of_string x_max;
+          Geo.y_min = float_of_string y_min;
+          Geo.y_max = float_of_string y_max;
+        } in
+        validate_rectangle rect;
+        target := rect;
+        abs_mode := true;
+        parse_options rest
     | "-print" :: rest -> print_prog := true; parse_options rest
     | [last] -> arg := int_of_string last
     | _ -> failwith "Options invalides."
   in
-  parse_options (List.tl args);
-  let (w, h) = !size in
-  width := w;  (* var déclarée avec ref := nv valeur *)
-  height := h
+  parse_options (List.tl args)
+
+
  
 
 (* ------------------------------------------------------------------------------------------------ *)
@@ -282,12 +296,12 @@ let run () =
   else if !abs_mode && not !cr_mode then
     (* Mode rectangle uniquement *)
     (Printf.printf "Executing in rectangle mode (approximations).\n%!";
-     execute_prog_rect program { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. })
+     execute_prog_rect program { Geo.x_min = 0.; Geo.x_max = 0.; Geo.y_min = 0.; Geo.y_max = 0. })
   else
     (* Les deux modes activés *)
     (Printf.printf "Executing in combined mode (points and rectangles).\n%!";
      execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. });
 
-  ignore (read_key ());
+  (* ignore (read_key ()); *)
   close_graph ()
 

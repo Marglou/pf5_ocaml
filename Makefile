@@ -9,6 +9,12 @@ phony :
 .PHONY : build
 build :
 	@ $(opam_exec) dune build
+	@ $(MAKE) interpreteur_tutorial # affiche les options lors du build
+
+
+.PHONY : interpreteur_tutorial  # execute le fichier interpreteur_tutorial.sh affichant les options
+interpreteur_tutorial :
+	@./src/interpreteur_tutorial.sh
 
 .PHONY : test
 test :
