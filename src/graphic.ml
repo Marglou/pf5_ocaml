@@ -11,7 +11,8 @@ let bg_color = ref (255, 255, 255)
 let fg_color = ref (0, 25, 0)
 let rect_color = ref (0, 255, 0)
 let point_color = ref (0, 0, 255)
-let cr_mode = ref false
+let cr_mode = ref true
+let abs_mode = ref false
 let arg = ref 1
 let print_prog = ref false
 let target = ref { Geo.x_min = 0.; Geo.x_max = 100.; Geo.y_min = 0.; Geo.y_max = 35. }
@@ -211,6 +212,17 @@ let delay seconds =
   in
   loop ()
 
+(* Fonction pour lire une touche *)
+let read_key () =
+  let rec loop () =
+    match wait_next_event [Key_pressed] with
+    | { key = 'q'; _ } -> ()
+    | _ -> loop ()
+  in
+  loop ()
+
+(* ---------------------------------  EXECUTER LE PROGRAMME AVEC DESSIN -------------------------------------------------------------- *)
+
 let execute_prog_point prog state =
   let states = run_polymorphe transform prog state in
   Printf.printf "Debug Point States:\n%!";
@@ -234,11 +246,26 @@ let execute_prog_rect prog state =
     delay 0.2;
   ) states
 
+let execute_prog_point_and_rect prog point_state rect_state =
+  let point_states = run_polymorphe transform prog point_state in
+  let rect_states = run_polymorphe transform_rect prog rect_state in
+  let states = List.combine point_states rect_states in
+  List.iter (fun ({ Geo.x; Geo.y }, { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max }) ->
+    clear_screen ();
+    draw_lines ();
+    draw_point { Geo.x; Geo.y };
+    draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
+    delay 0.2;
+  ) states
+
+
+(* --------------------- MAIN ------------------------------------------------------------------------------ *)
+
 let run () =
   parse_arguments ();
   set_window ();
   draw_lines ();
-  (* Printf.printf "Running program with abs_mode=%b, arg=%d\n%!" !abs_mode !arg; *)
+
   let program = match !arg with
     | 1 -> prog1
     | 2 -> prog2
@@ -246,15 +273,21 @@ let run () =
     | _ -> failwith "Choisissez un programme valide."
   in
   Printf.printf "Selected program: %d\n%!" !arg;
-  Printf.printf "Initial state: %s\n%!"
-    (if !cr_mode
-     then Printf.sprintf "Point {x=0.00, y=0.00}"
-     else Printf.sprintf "Rectangle {x_min=0.00, x_max=10.00, y_min=0.00, y_max=10.00}");
-  if !cr_mode then
+
+  (* Vérifier les modes et exécuter le programme *)
+  if !cr_mode && not !abs_mode then
+    (* Mode point uniquement *)
     (Printf.printf "Executing in absolute mode (points).\n%!";
      execute_prog_point program { Geo.x = 0.; Geo.y = 0. })
-  else
+  else if !abs_mode && not !cr_mode then
+    (* Mode rectangle uniquement *)
     (Printf.printf "Executing in rectangle mode (approximations).\n%!";
-     execute_prog_rect program { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. });
+     execute_prog_rect program { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. })
+  else
+    (* Les deux modes activés *)
+    (Printf.printf "Executing in combined mode (points and rectangles).\n%!";
+     execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. });
+
   ignore (read_key ());
   close_graph ()
+
