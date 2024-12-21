@@ -15,9 +15,6 @@ let rec is_deterministic (prog : program) : bool =
   | Move _ :: reste -> is_deterministic reste       (*recursion pour regarder reste de instructions dans prog*)
   | Repeat (_, subprog) :: reste -> is_deterministic subprog && is_deterministic reste  (*recursion pour regarder reste de instructions dans prog et dans les sous programme dans repeat*)
   | Either _ :: _ -> false                          (*false dès qu'il y a un repeat*)
-
-
-
   exception NonDeterministicProgram  (* init exception pour raise *)
 
   let rec unfold_repeat (prog : program) : program =
@@ -61,15 +58,14 @@ let target_reached_det (prog : program) (p : point) (target : rectangle) : bool 
   | last_pos :: _ -> in_rectangle target last_pos (* Vérifier si la dernière position est dans le rectangle cible *)
   
   
-
-  let rec unfold_repeat_nonDet (prog : program) : program =
-    List.flatten (                                            (*combines sous listes en une liste "homogène"*)
-      List.map (function
-        | Move t -> [Move t]                                  (* move reste pareil, on l'ajoute tel quel au nvx prog *)
-        | Repeat (n, sousprog) -> repeat_to_flat n sousprog   (* fonction auxiliaire pour derouler  *)
-        | Either (p1, p2) -> [Either (p1, p2)]                  
-        ) prog                                                 
-    )
+let rec unfold_repeat_nonDet (prog : program) : program =
+  List.flatten (                                            (*combines sous listes en une liste "homogène"*)
+    List.map (function
+      | Move t -> [Move t]                                  (* move reste pareil, on l'ajoute tel quel au nvx prog *)
+      | Repeat (n, sousprog) -> repeat_to_flat n sousprog   (* fonction auxiliaire pour derouler  *)
+      | Either (p1, p2) -> [Either (p1, p2)]                  
+      ) prog                                                 
+  )
   
 (* Exercice 4.5 *)
 let rec run (prog : program) (p : point) : point list =

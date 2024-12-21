@@ -14,24 +14,32 @@ let point_color = ref (0, 0, 255)
 let cr_mode = ref true
 let abs_mode = ref false
 let arg = ref 1
-let print_prog = ref false
 let rect_target = ref { Geo.x_min = 0.; Geo.x_max = 100.; Geo.y_min = 0.; Geo.y_max = 35. }
 
+(* Options supplémentaires *)
+let step_by_step = ref false (* Executer un programme etape apr etape *)
+let print_prog = ref false (* Affiche la ligne de cmd executée *)
 
-(* Programmes *)
+
+(*------------------ PROGRAMMES DISPONIBLES ------------------------------------------------------- *)
 let prog1 = [Move (Translate {x = 100.; y = 100.})]
+
 let prog2 = [
   Move (Translate {x = 100.; y = 0.});
   Repeat (3, [Move (Rotate ({x = 50.; y = 50.}, 90.))])
 ]
+
 let prog3 = [
   Either (
-    [Move (Translate {x = 20.; y = 0.})],
-    [Move (Translate {x = 0.; y = 20.})]
+    [Move (Translate {x = 50.; y = 0.})],
+    [Move (Translate {x = 0.; y = 50.})]
   );
-  Repeat (5, [Move (Rotate ({x = 100.; y = 100.}, 45.))])
-]
+  Either (
+    [Move (Translate {x = 50.; y = 0.})],
+    [Move (Translate {x = 0.; y = 50.})]
+  )
 
+]
 
 
 (* --------------------------- DRAW ---------------------------------------- *)
@@ -105,7 +113,7 @@ let draw_x_graduations width height step grad_length =
       (* Afficher le numéro *)
       if x <> 0 then begin
         moveto gx (height / 2 + grad_length + 5);
-        draw_string (string_of_int (x / step)); (* Numérotation ajustée *)
+        draw_string (string_of_int (x / step)); (* Numérotation ajustée supprimer le step pour avoir une graduation = pixel *)
       end
     end
   done
@@ -145,17 +153,20 @@ let draw_text x y text =
   moveto x y;
   draw_string text
 
-(* AFFICHE LA CIBLE DONNE *)
+(* AFFICHE LA CIBLE DONNEE *)
 let draw_target_rectangle rect_ref =
-  let rect = to_graphic_rect !rect_ref in (* Dereferencement avec ! *)
-  set_color (rgb 255 0 0); (* Couleur rouge pour la cible *)
+  let rect = to_graphic_rect !rect_ref in (* Déréférencement avec ! *)
   let x = int_of_float rect.x_min in
   let y = int_of_float rect.y_min in
   let width = int_of_float (rect.x_max -. rect.x_min) in
   let height = int_of_float (rect.y_max -. rect.y_min) in
-  draw_rect x y width height
+  (* Couleur de remplissage avec une opacité simulée *)
+  set_color (rgb 255 200 200); (* Rouge clair pour simuler une transparence *)
+  fill_rect x y width height (* Remplir le rectangle *)
+
 
 (* --------------------------- PARSE ARGUMENT ---------------------------------------- *)
+(* Vérifie que le rectangle approx soit correct dès le début *)
 let abs_correct rect =
     if not (rect.Geo.x_min <= 0. && rect.Geo.x_max >= 0. && rect.Geo.y_min <= 0. && rect.Geo.y_max >= 0.) then
       failwith (Printf.sprintf "Le rectangle spécifié (x_min=%.2f, x_max=%.2f, y_min=%.2f, y_max=%.2f) ne contient pas l'origine (0, 0)." rect.Geo.x_min rect.Geo.x_max rect.Geo.y_min rect.Geo.y_max)
@@ -200,6 +211,7 @@ let parse_arguments () =
         cr_mode := false; (* Désactiver le mode point *)
         parse_options rest
     | "-print" :: rest -> print_prog := true; parse_options rest
+    | "-steps" :: rest -> step_by_step := true; parse_options rest
     | [last] -> arg := int_of_string last
     | _ -> failwith "Options invalides."
   in
@@ -236,15 +248,40 @@ let read_key () =
 
 (* ---------------------------------  EXECUTER LE PROGRAMME AVEC DESSIN -------------------------------------------------------------- *)
 
+(* Approximation du rectangle *)
+let rec run_rect_approx (prog : program) (r : rectangle) : rectangle list =
+  List.fold_left                                        
+  (fun rect_liste instr ->                       
+    let current_rect = List.hd (List.rev rect_liste) in
+      rect_liste @ execute_prog current_rect instr)       
+    [r]                                                 
+    ( unfold_repeat prog )                             
+  
+  and execute_prog (r : rectangle) (i : instruction) : rectangle list = 
+    match i with                                                
+      | Move t -> [transform_rect t r]                                 (* dans geo.ml *)
+      | Repeat (n, sousprog) -> run_rect (repeat_to_flat n sousprog ) r    
+      (* | Either (p1, p2) ->                                          
+        let rect_1 = over_approximate p1 r in
+        let rect_2 = over_approximate p2 r in
+        [union_rectangle rect_1 rect_2] *)
+      | Either (p1, p2) ->
+        let rects_p1 = run_rect_approx p1 r in
+        let rects_p2 = run_rect_approx p2 r in
+        let combined_rects = List.map2 union_rectangle rects_p1 rects_p2 in
+        combined_rects
+
+
+(* Dessin du point  *)
 let execute_prog_point prog state =
   let states = run_polymorphe transform prog state in
-  Printf.printf "Debug Point States:\n%!";
+  (* Printf.printf "Debug Point States:\n%!"; *)
   List.iter (fun { Geo.x; Geo.y } ->
     Printf.printf "Point: x = %.2f, y = %.2f\n%!" x y;
     clear_screen ();
+    draw_target_rectangle rect_target;
     draw_lines ();
     draw_point { Geo.x; Geo.y };
-    draw_target_rectangle rect_target;
     delay 0.2;
   ) states;
 
@@ -253,44 +290,129 @@ let execute_prog_point prog state =
   else
     draw_text 10 (!height-25) "Cible non atteinte." 
 
+(* Dessin du rectangle *)
 let execute_prog_rect prog state =
-  let states = run_polymorphe transform_rect prog state in
-  Printf.printf "Debug Rectangle States:\n%!";
+  let states = run_rect_approx prog state in
+  (* Printf.printf "Debug Rectangle States:\n%!"; *)
   List.iter (fun { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max } ->
     Printf.printf "Rectangle: x_min=%.2f, x_max=%.2f, y_min=%.2f, y_max=%.2f\n%!"
       x_min x_max y_min y_max;
     clear_screen ();
+    draw_target_rectangle rect_target;
     draw_lines ();
     draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
-    draw_target_rectangle rect_target;
     delay 0.2;
   ) states;
 
   if target_reached_rect prog state !rect_target then
     Printf.printf "Target reached!\n%!"
   else
-    Printf.printf "Target not reached.\n%!"
+    Printf.printf "Target not reached.\n%!" 
 
-let execute_prog_point_and_rect prog point_state rect_state =
+    (* Point et approx  *)
+(*let execute_prog_point_and_rect prog point_state rect_state =
   let point_states = run_polymorphe transform prog point_state in
-  let rect_states = run_polymorphe transform_rect prog rect_state in
+  let rect_states = run_rect_approx  prog rect_state in
   let states = List.combine point_states rect_states in
   List.iter (fun ({ Geo.x; Geo.y }, { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max }) ->
     clear_screen ();
-    draw_lines ();
+    draw_target_rectangle rect_target;
     draw_point { Geo.x; Geo.y };
     draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
-    draw_target_rectangle rect_target;
+    draw_lines ();
     delay 0.2;
-  ) states
-(* 
+  ) states 
   if target_reached prog point_state rect_target and feasible_target_reached then
     Printf.printf "Target reached!\n%!"
   else
     Printf.printf "Target not reached.\n%!" *)
 
+    let execute_prog_point_and_rect prog point_state rect_state =
+      let point_states = run_polymorphe transform prog point_state in
+      let rect_states = run_rect_approx prog rect_state in
+      let states = List.combine point_states rect_states in
+    
+      let current_step = ref 0 in (* Étape actuelle *)
+    
+      let rec loop () =
+        clear_screen ();
+        draw_target_rectangle rect_target;
+    
+        (* Afficher l'état actuel *)
+        let step = max 0 (min !current_step (List.length states - 1)) in
+        let point, rect = List.nth states step in
+        draw_point point;
+        draw_rectangle rect;
+        draw_lines ();
+    
+        (* Vérification de la cible *)
+        if target_reached prog point_state !rect_target then
+          draw_text 10 (!height - 25) "Cible atteinte."
+        else
+          draw_text 10 (!height - 25) "Cible non atteinte.";
+    
+        (* Attendre une touche *)
+        match wait_next_event [Key_pressed] with
+        | { key = 'p'; _ } -> (* Avancer *)
+            incr current_step;
+            loop ()
+        | { key = 'q'; _ } -> (* Reculer *)
+            decr current_step;
+            loop ()
+        | { key = 'e'; _ } -> (* Quitter *)
+            ()
+        | _ -> loop () (* Ignorer les autres touches *)
+      in
+      loop ()
+    
+
+
 
 (* ---------------------------------------------------  MAIN ------------------------------------------------------------------------------ *)
+
+(*let run () =
+  parse_arguments ();
+  set_window ();
+  draw_lines ();
+
+  let program = match !arg with
+    | 1 -> prog1
+    | 2 -> prog2
+    | 3 -> prog3
+    | _ -> failwith "Choisissez un programme valide."
+  in
+  Printf.printf "Selected program: %d\n%!" !arg;
+
+  (* Vérifier les modes et exécuter le programme *)
+  (* if !cr_mode && not !abs_mode then
+    (* Mode point uniquement *)
+    (Printf.printf "Executing in absolute mode (points).\n%!";
+     execute_prog_point program { Geo.x = 0.; Geo.y = 0. })
+  else if !abs_mode && not !cr_mode then
+    (* Mode rectangle uniquement *)
+    (Printf.printf "Executing in rectangle mode (approximations).\n%!";
+     execute_prog_rect program { Geo.x_min = 0.; Geo.x_max = 0.; Geo.y_min = 0.; Geo.y_max = 0. })
+  else *)
+    (* Les deux modes activés *)
+    (Printf.printf "Executing in combined mode (points and rectangles).\n%!";
+     execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. });
+
+  (* Exemple de rectangle initial *)
+  (* let initial_rectangle = { Geo.x_min = -20.; Geo.x_max = 20.; Geo.y_min = 50.; Geo.y_max = 150. } in
+  draw_rectangle initial_rectangle;
+
+  (* Appliquer une rotation au rectangle *)
+  let rotation_center = { Geo.x = 150.; Geo.y = 100. } in
+  let rotated_rectangle = transform_rect (Rotate (rotation_center, 25.)) initial_rectangle in
+  delay 1.0; (* Pause pour visualiser le rectangle initial *)
+
+  (* Afficher le rectangle après rotation *)
+  draw_rectangle rotated_rectangle; *)
+
+
+  ignore (read_key ());
+  close_graph ()
+*)
 
 let run () =
   parse_arguments ();
@@ -305,20 +427,9 @@ let run () =
   in
   Printf.printf "Selected program: %d\n%!" !arg;
 
-  (* Vérifier les modes et exécuter le programme *)
-  if !cr_mode && not !abs_mode then
-    (* Mode point uniquement *)
-    (Printf.printf "Executing in absolute mode (points).\n%!";
-     execute_prog_point program { Geo.x = 0.; Geo.y = 0. })
-  else if !abs_mode && not !cr_mode then
-    (* Mode rectangle uniquement *)
-    (Printf.printf "Executing in rectangle mode (approximations).\n%!";
-     execute_prog_rect program { Geo.x_min = 0.; Geo.x_max = 0.; Geo.y_min = 0.; Geo.y_max = 0. })
-  else
-    (* Les deux modes activés *)
-    (Printf.printf "Executing in combined mode (points and rectangles).\n%!";
-     execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. });
+  Printf.printf "Press 'p' to progress, 'q' to go back, 'e' to exit.\n%!";
 
-  ignore (read_key ());
+  execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. };
+
   close_graph ()
 
