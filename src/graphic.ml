@@ -237,14 +237,14 @@ let delay seconds =
   in
   loop ()
 
-(* Fonction pour lire une touche *)
-let read_key () =
-  let rec loop () =
-    match wait_next_event [Key_pressed] with
-    | { key = 'q'; _ } -> ()
-    | _ -> loop ()
-  in
-  loop ()
+  (* Fonction qui attend un événement et exécute une action en fonction de la touche *)
+let handle_key_event () =
+  match wait_next_event [Key_pressed] with
+  | { key = 'p'; _ } -> `StepForward  (* Avancer *)
+  | { key = 'q'; _ } -> `StepBackward (* Reculer *)
+  | { key = 'e'; _ } -> `Exit         (* Quitter *)
+  | _ -> `NoAction                     (* Aucune action *)
+
 
 (* ---------------------------------  EXECUTER LE PROGRAMME AVEC DESSIN -------------------------------------------------------------- *)
 
@@ -270,6 +270,27 @@ let rec run_rect_approx (prog : program) (r : rectangle) : rectangle list =
         let rects_p2 = run_rect_approx p2 r in
         let combined_rects = List.map2 union_rectangle rects_p1 rects_p2 in
         combined_rects
+
+let rec loop current_step states =
+  clear_screen ();
+  draw_target_rectangle rect_target;
+
+  let step = max 0 (min current_step (List.length states - 1)) in
+  let point, rect = List.nth states step in
+  draw_point point;
+  draw_rectangle rect;
+  draw_lines ();
+(* 
+  if target_reached prog point_state !rect_target then
+    draw_text 10 (!height - 25) "Cible atteinte."
+  else
+    draw_text 10 (!height - 25) "Cible non atteinte."; *)
+
+  match handle_key_event () with
+  | `StepForward -> loop (current_step + 1) states  (* Avancer d'un pas *)
+  | `StepBackward -> loop (current_step - 1) states (* Reculer d'un pas *)
+  | `Exit -> ()  (* Quitter le programme *)
+  | `NoAction -> loop current_step states  (* Aucun changement, continuer *)
 
 
 (* Dessin du point  *)
@@ -310,67 +331,77 @@ let execute_prog_rect prog state =
     Printf.printf "Target not reached.\n%!" 
 
     (* Point et approx  *)
-(*let execute_prog_point_and_rect prog point_state rect_state =
+(* let execute_prog_point_and_rect prog point_state rect_state =
   let point_states = run_polymorphe transform prog point_state in
   let rect_states = run_rect_approx  prog rect_state in
   let states = List.combine point_states rect_states in
-  List.iter (fun ({ Geo.x; Geo.y }, { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max }) ->
-    clear_screen ();
-    draw_target_rectangle rect_target;
-    draw_point { Geo.x; Geo.y };
-    draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
-    draw_lines ();
-    delay 0.2;
-  ) states 
-  if target_reached prog point_state rect_target and feasible_target_reached then
-    Printf.printf "Target reached!\n%!"
+
+  if !step_by_step then
+    let current_step = ref 0 in
+    let rec loop () =
+      clear_screen ();
+      draw_target_rectangle rect_target;
+      let step = max 0 (min !current_step (List.length states - 1)) in
+      let point, rect = List.nth states step in
+      draw_point point;
+      draw_rectangle rect;
+      draw_lines ();
+      if target_reached prog point_state !rect_target then
+        draw_text 10 (!height - 25) "Cible atteinte."
+      else
+        draw_text 10 (!height - 25) "Cible non atteinte.";
+      match wait_next_event [Key_pressed] with
+      | { key = 'p'; _ } -> incr current_step; loop ()
+      | { key = 'q'; _ } -> decr current_step; loop ()
+      | { key = 'e'; _ } -> ()
+      | _ -> loop ()
+    in
+    loop ()
   else
-    Printf.printf "Target not reached.\n%!" *)
+    List.iter (fun ({ Geo.x; Geo.y }, { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max }) ->
+      clear_screen ();
+      draw_target_rectangle rect_target;
+      draw_point { Geo.x; Geo.y };
+      draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
+      draw_lines ();
+      delay 0.2;
+    ) states;
+    match wait_next_event [Key_pressed] with
+    | { key = 'e'; _ } -> ()
+    | _ -> () *)
+
 
     let execute_prog_point_and_rect prog point_state rect_state =
       let point_states = run_polymorphe transform prog point_state in
       let rect_states = run_rect_approx prog rect_state in
       let states = List.combine point_states rect_states in
     
-      let current_step = ref 0 in (* Étape actuelle *)
-    
-      let rec loop () =
-        clear_screen ();
-        draw_target_rectangle rect_target;
-    
-        (* Afficher l'état actuel *)
-        let step = max 0 (min !current_step (List.length states - 1)) in
-        let point, rect = List.nth states step in
-        draw_point point;
-        draw_rectangle rect;
-        draw_lines ();
-    
-        (* Vérification de la cible *)
-        if target_reached prog point_state !rect_target then
-          draw_text 10 (!height - 25) "Cible atteinte."
-        else
-          draw_text 10 (!height - 25) "Cible non atteinte.";
-    
-        (* Attendre une touche *)
+      if !step_by_step then
+        let current_step = ref 0 in
+        loop !current_step states
+      else
+        List.iter (fun ({ Geo.x; Geo.y }, { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max }) ->
+          clear_screen ();
+          draw_target_rectangle rect_target;
+          draw_point { Geo.x; Geo.y };
+          draw_rectangle { Geo.x_min; Geo.x_max; Geo.y_min; Geo.y_max };
+          draw_lines ();
+          delay 0.2;
+        ) states;
         match wait_next_event [Key_pressed] with
-        | { key = 'p'; _ } -> (* Avancer *)
-            incr current_step;
-            loop ()
-        | { key = 'q'; _ } -> (* Reculer *)
-            decr current_step;
-            loop ()
-        | { key = 'e'; _ } -> (* Quitter *)
-            ()
-        | _ -> loop () (* Ignorer les autres touches *)
-      in
-      loop ()
+        | { key = 'e'; _ } -> ()
+        | _ -> ()
     
 
+  (* if target_reached prog point_state rect_target and feasible_target_reached then
+    Printf.printf "Target reached!\n%!"
+  else
+    Printf.printf "Target not reached.\n%!"  *)
 
 
 (* ---------------------------------------------------  MAIN ------------------------------------------------------------------------------ *)
 
-(*let run () =
+let run () =
   parse_arguments ();
   set_window ();
   draw_lines ();
@@ -409,27 +440,8 @@ let execute_prog_rect prog state =
   (* Afficher le rectangle après rotation *)
   draw_rectangle rotated_rectangle; *)
 
-
-  ignore (read_key ());
   close_graph ()
-*)
 
-let run () =
-  parse_arguments ();
-  set_window ();
-  draw_lines ();
 
-  let program = match !arg with
-    | 1 -> prog1
-    | 2 -> prog2
-    | 3 -> prog3
-    | _ -> failwith "Choisissez un programme valide."
-  in
-  Printf.printf "Selected program: %d\n%!" !arg;
 
-  Printf.printf "Press 'p' to progress, 'q' to go back, 'e' to exit.\n%!";
-
-  execute_prog_point_and_rect program { Geo.x = 0.; Geo.y = 0. } { Geo.x_min = 0.; Geo.x_max = 10.; Geo.y_min = 0.; Geo.y_max = 10. };
-
-  close_graph ()
 
