@@ -95,6 +95,7 @@ let rec over_approximate (prog : program) (r : rectangle) : rectangle =
         let rect_p1 = over_approximate p1 r in
         let rect_p2 = over_approximate p2 r in
         union_rectangle rect_p1 rect_p2
+  
         
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
   let rect_target = over_approximate prog r in

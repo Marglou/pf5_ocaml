@@ -23,7 +23,15 @@ let print_prog = ref false (* Affiche la ligne de cmd executée *)
 
 
 (*------------------ PROGRAMMES DISPONIBLES ------------------------------------------------------- *)
-let prog1 = [Move (Translate {x = 10.; y = 0.})]
+let prog1 = [
+  Move (Translate {x = 10.; y = 0.});
+  Repeat (3, [Move (Rotate ({x = 50.; y = 50.}, 90.))]);
+  Either (
+    [Move (Translate {x = 50.; y = 0.})],
+    [Move (Translate {x = 0.; y = 50.})]
+  );
+  Move (Translate {x = 10.; y = 0.})
+]
 
 let prog2 = [
   Move (Translate {x = 100.; y = 0.});
@@ -321,8 +329,8 @@ let draw_state state draw_form =
   draw_form state;
   draw_lines () (* Dessin des lignes de la grille ou autres éléments visuels *)
 
-let draw_step_info current_step instruction_opt =
-  let message = match instruction_opt with
+let draw_step_info current_step instr =
+  let message = match instr with
     | Some step_instruction ->
         let step_string = string_of_instruction step_instruction in
         Printf.sprintf "Step %d: %s" current_step step_string
@@ -335,7 +343,7 @@ let draw_step_info current_step instruction_opt =
 (* Fonction pour gérer le mode Step-by-Step *)
 let option_step_by_step states draw_form rect_target prog check =
   let rec loop current_step =
-    let step = max 0 (min current_step (List.length states )) in
+    let step = max 0 (min current_step (List.length states)) in
     if step < (List.length states)  then
       let state = List.nth states step in
       init_window rect_target;
@@ -343,9 +351,7 @@ let option_step_by_step states draw_form rect_target prog check =
 
       if !print_prog then
         draw_step_info current_step (instruction_at_step current_step prog);
-      
-      (* Printf.printf "Point %d: %s\n" current_step; *)
-      
+            
       if step = List.length states then
         if check then
           draw_text 10 (!height - 50) "Cible atteinte."
@@ -358,35 +364,43 @@ let option_step_by_step states draw_form rect_target prog check =
         else draw_text 10 (!height - 70) "Derniere etape atteinte."
     | `StepBackward -> 
         if current_step > 1 then loop (current_step - 1)
-        (* else draw_text 10 (!height - 70) "Première étape atteinte." *)
+        else draw_text 10 (!height - 70) "Premiere etape atteinte."
     | `Exit -> ()
     | `NoAction -> loop current_step
     
   in
   loop 0
 
+  
 (* Fonction pour traiter le mode sans Step-by-Step (Exécution complète) *)
-let execute_auto states draw_form rect_target =
+let execute_auto states draw_form rect_target prog =
+  let steps_prog = unfold_repeat prog in  (* steps_prog is computed once here *)
+  let n = ref 0 in  (* Use a reference to track the index of the step *)
+  let num_steps = List.length steps_prog in  (* Get the length of steps_prog *)
+  
   List.iter (fun state ->
     init_window rect_target;
     draw_state state draw_form;
-    (* if !print_prog then
-      draw_text 10 10 (string_of_instruction state); *)
-    delay 0.2;
+    if !print_prog then
+      if !n < num_steps then
+        draw_text 10 10 (string_of_instruction (List.nth steps_prog !n));  
+    n := !n + 1;  
+    delay 0.5;
   ) states
-
-(* Fonction principale pour exécuter le programme en fonction du mode *)
+  (* Printf.printf "Nombre d'étapes: %d\n" !n;
+  List.iter (fun s -> Printf.printf "%s\n" (string_of_instruction s)) steps_prog *)
 
 (* Fonction pour gérer l'exécution de la boucle (automatique ou pas) *)
 let execute_step_or_auto states draw_form rect_target prog check_target =
   if !step_by_step then
     option_step_by_step states draw_form rect_target prog check_target
   else
-    execute_auto states draw_form rect_target;
+    execute_auto states draw_form rect_target prog;
     if check_target  then
       draw_text 10 (!height - 50) "Cible atteinte."
     else
       draw_text 10 (!height - 50) "Cible non atteinte."
+
 
 (* Fonction pour exécuter le programme pour PointOnly, RectOnly ou PointAndRect *)
 let execute_prog_polymorphe mode prog point_state rect_state rect_target =
@@ -413,7 +427,6 @@ let execute_prog_polymorphe mode prog point_state rect_state rect_target =
     in
     let check_target = target_reached prog point_state !rect_target in
     execute_step_or_auto states draw_form rect_target prog check_target
-
 
 
 (* ---------------------------------------------------  MAIN ------------------------------------------------------------------------------ *)
