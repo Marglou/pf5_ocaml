@@ -309,7 +309,7 @@ let rec run_rect_approx (prog : program) (r : rectangle) : rectangle list =
         let combined_rects = List.map2 union_rectangle rects_p1 rects_p2 in
         combined_rects
 
-
+  
 type execution_mode =
   | PointOnly
   | RectOnly
@@ -342,53 +342,69 @@ let draw_step_info current_step instr =
 
 (* Fonction pour gérer le mode Step-by-Step *)
 let option_step_by_step states draw_form rect_target prog check =
+  let states_prog = unfold_repeat prog in
+  (* Fonction récursive pour gérer le déplacement entre les étapes *)
   let rec loop current_step =
-    let step = max 0 (min current_step (List.length states)) in
-    if step < (List.length states)  then
-      let state = List.nth states step in
+    let max_step = List.length states - 1 in
+    let current_step = max 0 (min current_step max_step) in  (* S'assurer que current_step est dans les bornes *)
+
+    (* Vérification si l'on est dans les limites de l'étape *)
+    if current_step <= max_step then
+      let state = List.nth states current_step in
       init_window rect_target;
       draw_state state draw_form;
+      
+      (* Afficher les informations du programme si nécessaire *)
+      if !print_prog && (current_step - 1) >= 0 && current_step < max_step then
+        draw_text 10 10 (string_of_instruction (List.nth states_prog (current_step - 1)));
 
-      if !print_prog then
-        draw_step_info current_step (instruction_at_step current_step prog);
-            
-      if step = List.length states then
+      (* Afficher un message si la cible est atteinte ou non *)
+      if current_step = max_step then
         if check then
           draw_text 10 (!height - 50) "Cible atteinte."
         else
           draw_text 10 (!height - 50) "Cible non atteinte.";
 
+    (* Gérer les événements de clavier *)
     match handle_key_event () with
     | `StepForward -> 
-        if current_step < List.length states - 1 then loop (current_step + 1)
-        else draw_text 10 (!height - 70) "Derniere etape atteinte."
+        if current_step < max_step then 
+          loop (current_step + 1)
+        else
+          draw_text 10 (!height - 70) "Derniere etape atteinte."
     | `StepBackward -> 
-        if current_step > 1 then loop (current_step - 1)
-        else draw_text 10 (!height - 70) "Premiere etape atteinte."
-    | `Exit -> ()
-    | `NoAction -> loop current_step
-    
+        if current_step > 0 then 
+          loop (current_step - 1)
+        else
+          draw_text 10 (!height - 70) "Premiere etape atteinte."
+    | `Exit -> ()  (* Sortir de la fonction si l'utilisateur choisit "Exit" *)
+    | `NoAction -> loop current_step  (* Continuer si aucune action n'a été effectuée *)
+
   in
+  (* Lancer la boucle à partir de la première étape *)
   loop 0
 
   
 (* Fonction pour traiter le mode sans Step-by-Step (Exécution complète) *)
 let execute_auto states draw_form rect_target prog =
-  let steps_prog = unfold_repeat prog in  (* steps_prog is computed once here *)
-  let n = ref 0 in  (* Use a reference to track the index of the step *)
+  (* Compute the steps of the program once *)
+  let steps_prog = unfold_repeat prog in
+  let n = ref (-1) in  (* Use a reference to track the index of the step *)
   let num_steps = List.length steps_prog in  (* Get the length of steps_prog *)
   
   List.iter (fun state ->
     init_window rect_target;
     draw_state state draw_form;
-    if !print_prog then
-      if !n < num_steps then
+    
+    (* Check if print_prog is true before drawing the instruction text *)
+    if !print_prog then 
+      if !n < num_steps && !n >= 0 then
         draw_text 10 10 (string_of_instruction (List.nth steps_prog !n));  
+    
+    (* Increment the step counter *)
     n := !n + 1;  
     delay 0.5;
   ) states
-  (* Printf.printf "Nombre d'étapes: %d\n" !n;
-  List.iter (fun s -> Printf.printf "%s\n" (string_of_instruction s)) steps_prog *)
 
 (* Fonction pour gérer l'exécution de la boucle (automatique ou pas) *)
 let execute_step_or_auto states draw_form rect_target prog check_target =
