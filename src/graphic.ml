@@ -376,51 +376,43 @@ let execute_auto states draw_form rect_target =
   ) states
 
 (* Fonction principale pour exécuter le programme en fonction du mode *)
+
+(* Fonction pour gérer l'exécution de la boucle (automatique ou pas) *)
+let execute_step_or_auto states draw_form rect_target prog check_target =
+  if !step_by_step then
+    option_step_by_step states draw_form rect_target prog check_target
+  else
+    execute_auto states draw_form rect_target;
+    if check_target  then
+      draw_text 10 (!height - 50) "Cible atteinte."
+    else
+      draw_text 10 (!height - 50) "Cible non atteinte."
+
+(* Fonction pour exécuter le programme pour PointOnly, RectOnly ou PointAndRect *)
 let execute_prog_polymorphe mode prog point_state rect_state rect_target =
   match mode with
   | PointOnly ->
     let states = run_polymorphe transform prog point_state in
     let draw_form state = draw_point state in
-    if !step_by_step then
-      let check_target = target_reached prog point_state !rect_target in
-      option_step_by_step states draw_form rect_target prog check_target
-    else
-      execute_auto states draw_form rect_target;
-      if target_reached prog point_state !rect_target then
-        draw_text 10 (!height - 50) "Cible atteinte."
-      else
-        draw_text 10 (!height - 50) "Cible non atteinte."
+    let check_target = target_reached prog point_state !rect_target in
+    execute_step_or_auto states draw_form rect_target prog check_target
 
   | RectOnly ->
     let states = run_rect_approx prog rect_state in
     let draw_form state = draw_rectangle state in
-    if !step_by_step then
-      let check_target = target_reached_rect prog rect_state !rect_target in
-      option_step_by_step states draw_form rect_target prog check_target
-    else
-      execute_auto states draw_form rect_target;
-      if target_reached_rect prog rect_state !rect_target then
-        draw_text 10 (!height - 50) "Cible atteinte."
-      else
-        draw_text 10 (!height - 50) "Cible non atteinte."
+    let check_target = target_reached_rect prog rect_state !rect_target in
+    execute_step_or_auto states draw_form rect_target prog check_target
 
   | PointAndRect ->
     let point_states = run_polymorphe transform prog point_state in
     let rect_states = run_rect_approx prog rect_state in
     let states = List.combine point_states rect_states in
-    if !step_by_step then
-      let draw_form (point, rect) =
-        draw_point point;
-        draw_rectangle rect
-      in
-      let check_target = target_reached prog point_state !rect_target in
-      option_step_by_step states draw_form rect_target prog check_target
-    else
-      execute_auto states (fun (point, rect) -> draw_point point; draw_rectangle rect) rect_target;
-      if target_reached prog point_state !rect_target then
-        draw_text 10 (!height - 50) "Cible atteinte."
-      else
-        draw_text 10 (!height - 50) "Cible non atteinte."
+    let draw_form (point, rect) =
+      draw_point point;
+      draw_rectangle rect
+    in
+    let check_target = target_reached prog point_state !rect_target in
+    execute_step_or_auto states draw_form rect_target prog check_target
 
 
 
