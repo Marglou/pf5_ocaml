@@ -23,7 +23,7 @@ let print_prog = ref false (* Affiche la ligne de cmd executée *)
 
 
 (*------------------ PROGRAMMES DISPONIBLES ------------------------------------------------------- *)
-let prog1 = [Move (Translate {x = 100.; y = 100.})]
+let prog1 = [Move (Translate {x = 10.; y = 0.})]
 
 let prog2 = [
   Move (Translate {x = 100.; y = 0.});
@@ -39,20 +39,19 @@ let prog3 = [
     [Move (Translate {x = 50.; y = 0.})],
     [Move (Translate {x = 0.; y = 50.})]
   )
-
 ]
 
 
 (* --------------------------- DRAW ---------------------------------------- *)
 
   (* Centrer les coordonées sur l'axe tracé  *)
-let to_graphic_coords { Geo.x; Geo.y } =
+let scale_graphic_point { Geo.x; Geo.y } =
   {
     Geo.x = x +. float_of_int (!width / 2);
     Geo.y = y +. float_of_int (!height / 2);
   }
 
-let to_graphic_rect rect =
+let scale_graphic_rect rect =
   let width, height = !size in
   {
     Geo.x_min = rect.Geo.x_min +. float_of_int (width / 2);
@@ -63,7 +62,7 @@ let to_graphic_rect rect =
 
 (* Afficher un point *)
 let draw_point point =
-  let { Geo.x; Geo.y } = to_graphic_coords point in
+  let { Geo.x; Geo.y } = scale_graphic_point point in
   let r, g, b = !point_color in
   set_color (rgb r g b);
   fill_rect (int_of_float x - 3) (int_of_float y - 3) 6 6
@@ -71,7 +70,7 @@ let draw_point point =
 
 (* Afficher un rectangle *)
 let draw_rectangle rect =
-  let rect = to_graphic_rect rect in
+  let rect = scale_graphic_rect rect in
   let r, g, b = !rect_color in
   set_color (rgb r g b);
   let x = int_of_float rect.x_min in
@@ -156,7 +155,7 @@ let draw_text x y text =
 
 (* AFFICHE LA CIBLE DONNEE *)
 let draw_target_rectangle rect_ref =
-  let rect = to_graphic_rect !rect_ref in (* Déréférencement avec ! *)
+  let rect = scale_graphic_rect !rect_ref in (* Déréférencement avec ! *)
   let x = int_of_float rect.x_min in
   let y = int_of_float rect.y_min in
   let width = int_of_float (rect.x_max -. rect.x_min) in
@@ -334,7 +333,7 @@ let draw_step_info current_step instruction_opt =
 
 
 (* Fonction pour gérer le mode Step-by-Step *)
-let option_step_by_step states draw_form rect_target prog =
+let option_step_by_step states draw_form rect_target prog check =
   let rec loop current_step =
     let step = max 0 (min current_step (List.length states - 1)) in
     if step < (List.length states) - 1 then
@@ -344,18 +343,25 @@ let option_step_by_step states draw_form rect_target prog =
 
       if !print_prog then
         draw_step_info current_step (instruction_at_step current_step prog);
-(* 
-      else if step = List.length states - 1 then 
-        if target_reached prog point_state !rect_target then
+      
+      (* Printf.printf "Point %d: %s\n" current_step; *)
+      
+      if step = List.length states - 1 then
+        if check then
           draw_text 10 (!height - 50) "Cible atteinte."
         else
-          draw_text 10 (!height - 50) "Cible non atteinte.";  *)
+          draw_text 10 (!height - 50) "Cible non atteinte.";
 
     match handle_key_event () with
-    | `StepForward -> loop (current_step + 1)
-    | `StepBackward -> loop (current_step - 1)
+    | `StepForward -> 
+        if current_step < List.length states - 2 then loop (current_step + 1)
+        else draw_text 10 (!height - 70) "Derniere etape atteinte."
+    | `StepBackward -> 
+        if current_step > 1 then loop (current_step - 1)
+        (* else draw_text 10 (!height - 70) "Première étape atteinte." *)
     | `Exit -> ()
     | `NoAction -> loop current_step
+    
   in
   loop 0
 
@@ -376,7 +382,8 @@ let execute_prog_polymorphe mode prog point_state rect_state rect_target =
     let states = run_polymorphe transform prog point_state in
     let draw_form state = draw_point state in
     if !step_by_step then
-      option_step_by_step states draw_form rect_target prog
+      let check_target = target_reached prog point_state !rect_target in
+      option_step_by_step states draw_form rect_target prog check_target
     else
       execute_auto states draw_form rect_target;
       if target_reached prog point_state !rect_target then
@@ -388,7 +395,8 @@ let execute_prog_polymorphe mode prog point_state rect_state rect_target =
     let states = run_rect_approx prog rect_state in
     let draw_form state = draw_rectangle state in
     if !step_by_step then
-      option_step_by_step states draw_form rect_target prog
+      let check_target = target_reached_rect prog rect_state !rect_target in
+      option_step_by_step states draw_form rect_target prog check_target
     else
       execute_auto states draw_form rect_target;
       if target_reached_rect prog rect_state !rect_target then
@@ -405,7 +413,8 @@ let execute_prog_polymorphe mode prog point_state rect_state rect_target =
         draw_point point;
         draw_rectangle rect
       in
-      option_step_by_step states draw_form rect_target prog
+      let check_target = target_reached prog point_state !rect_target in
+      option_step_by_step states draw_form rect_target prog check_target
     else
       execute_auto states (fun (point, rect) -> draw_point point; draw_rectangle rect) rect_target;
       if target_reached prog point_state !rect_target then
@@ -429,11 +438,7 @@ let run () =
     | 3 -> prog3
     | _ -> failwith "Choisissez un programme valide."
   in
-  Printf.printf "Selected program: %d\n%!" !arg;
-  (* let step_instruction = instruction_at_step 1 program in
-  let step_string = string_of_instruction step_instruction in
-  Printf.printf "Instruction at step %d: %s\n%!" 1 step_string; *)
-  (* Définir les états initiaux pour le point et le rectangle *)
+
   let initial_point = { Geo.x = 0.; Geo.y = 0. } in
   let initial_rect =
     if !abs_mode then
