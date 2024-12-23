@@ -168,8 +168,7 @@ let draw_target_rectangle rect_ref =
   let y = int_of_float rect.y_min in
   let width = int_of_float (rect.x_max -. rect.x_min) in
   let height = int_of_float (rect.y_max -. rect.y_min) in
-  (* Couleur de remplissage avec une opacité simulée *)
-  set_color (rgb 255 200 200); (* Rouge clair pour simuler une transparence *)
+  set_color (rgb 255 200 200); 
   fill_rect x y width height (* Remplir le rectangle *)
 
 
@@ -195,13 +194,13 @@ let parse_arguments () =
       | [h; w] -> (int_of_string h, int_of_string w)
       | _ -> raise Not_found
     with _ ->
-      failwith (Printf.sprintf "Format incorrect: %s.  HauteurxLargeur (e.g., 800x600)." s)
+      failwith (Printf.sprintf "Format incorrect: %s.  HauteurxLargeur (ex : 800x600)." s)
 
   in
   let parse_color c =
     match String.split_on_char ',' c with
     | [r; g; b] -> (int_of_string r, int_of_string g, int_of_string b)
-    | _ -> failwith "Format couleur invalide.  R,G,B (e.g., 255,0,0)."
+    | _ -> failwith "Format couleur invalide.  R,G,B (ex : 255,0,0)."
   in
   
   let rec parse_options = function
@@ -220,7 +219,6 @@ let parse_arguments () =
           Geo.y_max = float_of_string y_max;
         } in
         abs_correct rect;     (* Vérifier si le rectangle contient l'origine *)
-        (* rect_target := rect;  Mettre à jour la cible *)
         abs_mode := true; (* Activer le mode rectangle *)
         cr_mode := false; (* Désactiver le mode point *)
         rect_approx := rect; (* Mettre à jour le rectangle approximatif *)
@@ -306,8 +304,8 @@ let rec run_rect_approx (prog : program) (r : rectangle) : rectangle list =
       | Either (p1, p2) ->
         let rects_p1 = run_rect_approx p1 r in
         let rects_p2 = run_rect_approx p2 r in
-        let combined_rects = List.map2 union_rectangle rects_p1 rects_p2 in
-        combined_rects
+        let rects_combines = List.map2 union_rectangle rects_p1 rects_p2 in
+        rects_combines
 
   
 type execution_mode =
@@ -331,7 +329,7 @@ let draw_state state draw_form =
 
 
 (* Fonction pour gérer le mode Step-by-Step *)
-let option_step_by_step states draw_form rect_target prog check =
+let option_step_by_step states draw_form prog check =
   let states_prog = unfold_repeat prog in
   (* Fonction récursive pour gérer le déplacement entre les étapes *)
   let rec loop current_step =
@@ -367,7 +365,7 @@ let option_step_by_step states draw_form rect_target prog check =
           loop (current_step - 1)
         else
           draw_text 10 (!height - 70) "Premiere etape atteinte."
-    | `Exit -> ()  (* Sortir de la fonction si l'utilisateur choisit "Exit" *)
+    | `Exit -> close_graph()  (* Fermer la fenetre *)
     | `Rien -> loop current_step  (* Continuer si aucune action n'a été effectuée *)
 
   in
@@ -377,21 +375,18 @@ let option_step_by_step states draw_form rect_target prog check =
   
 (* Fonction pour traiter le mode sans Step-by-Step (Exécution complète) *)
 let execute_auto states draw_form rect_target prog =
-  (* Compute the steps of the program once *)
   let steps_prog = unfold_repeat prog in
-  let n = ref (-1) in  (* Use a reference to track the index of the step *)
-  let num_steps = List.length steps_prog in  (* Get the length of steps_prog *)
+  let n = ref (-1) in  (* Initialiser le compteur à -1  *)
+  let num_steps = List.length steps_prog in  
   
   List.iter (fun state ->
     init_window rect_target;
     draw_state state draw_form;
     
-    (* Check if print_prog is true before drawing the instruction text *)
     if !print_prog then 
       if !n < num_steps && !n >= 0 then
         draw_text 10 10 (string_of_instruction (List.nth steps_prog !n));  
     
-    (* Increment the step counter *)
     n := !n + 1;  
     delay 0.5;
   ) states
@@ -399,7 +394,7 @@ let execute_auto states draw_form rect_target prog =
 (* Fonction pour gérer l'exécution de la boucle (automatique ou pas) *)
 let execute_step_or_auto states draw_form rect_target prog check_target =
   if !step_by_step then
-    option_step_by_step states draw_form rect_target prog check_target
+    option_step_by_step states draw_form prog check_target
   else
     execute_auto states draw_form rect_target prog;
     if check_target  then
