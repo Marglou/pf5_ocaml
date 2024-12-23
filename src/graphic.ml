@@ -255,12 +255,12 @@ let delay seconds =
   (* Fonction qui attend un événement et exécute une action en fonction de la touche *)
 let handle_key_event () =
   match wait_next_event [Key_pressed] with
-  | { key = 'p'; _ } -> `StepForward  (* Avancer *)
-  | { key = 'q'; _ } -> `StepBackward (* Reculer *)
+  | { key = 'p'; _ } -> `Avance  (* Avancer *)
+  | { key = 'q'; _ } -> `Recule (* Reculer *)
   | { key = 'e'; _ } -> `Exit         (* Quitter *)
-  | _ -> `NoAction                     (* Aucune action *)
+  | _ -> `Rien                     (* Aucune action *)
 
-  let wait_for_exit () =
+  let close_window () =
     let rec loop () =
       match wait_next_event [Key_pressed] with
       | { key = 'e'; _ } -> close_graph () (* Fermer la fenêtre quand 'e' est pressé *)
@@ -282,7 +282,7 @@ let rec string_of_instruction instr =
 
 
 (* Fonction pour accéder à l'instruction à une position donnée *)
-let instruction_at_step n prog =
+let extract_instr n prog =
   if n >= 1 && n <= List.length prog then
     Some (List.nth prog (n - 1))
   else
@@ -329,16 +329,6 @@ let draw_state state draw_form =
   draw_form state;
   draw_lines () (* Dessin des lignes de la grille ou autres éléments visuels *)
 
-let draw_step_info current_step instr =
-  let message = match instr with
-    | Some step_instruction ->
-        let step_string = string_of_instruction step_instruction in
-        Printf.sprintf "Step %d: %s" current_step step_string
-    | None -> 
-        Printf.sprintf "Step %d: Non trouvé" current_step
-  in
-  draw_text 10 10 message
-
 
 (* Fonction pour gérer le mode Step-by-Step *)
 let option_step_by_step states draw_form rect_target prog check =
@@ -367,18 +357,18 @@ let option_step_by_step states draw_form rect_target prog check =
 
     (* Gérer les événements de clavier *)
     match handle_key_event () with
-    | `StepForward -> 
+    | `Avance -> 
         if current_step < max_step then 
           loop (current_step + 1)
         else
           draw_text 10 (!height - 70) "Derniere etape atteinte."
-    | `StepBackward -> 
+    | `Recule -> 
         if current_step > 0 then 
           loop (current_step - 1)
         else
           draw_text 10 (!height - 70) "Premiere etape atteinte."
     | `Exit -> ()  (* Sortir de la fonction si l'utilisateur choisit "Exit" *)
-    | `NoAction -> loop current_step  (* Continuer si aucune action n'a été effectuée *)
+    | `Rien -> loop current_step  (* Continuer si aucune action n'a été effectuée *)
 
   in
   (* Lancer la boucle à partir de la première étape *)
@@ -485,4 +475,4 @@ let run () =
   execute_prog_polymorphe mode program initial_point initial_rect rect_target;
 
   (* Attente de la fermeture par l'utilisateur *)
-  wait_for_exit ()
+  close_window ()
