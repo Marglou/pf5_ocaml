@@ -335,8 +335,8 @@ let draw_step_info current_step instruction_opt =
 (* Fonction pour gérer le mode Step-by-Step *)
 let option_step_by_step states draw_form rect_target prog check =
   let rec loop current_step =
-    let step = max 0 (min current_step (List.length states - 1)) in
-    if step < (List.length states) - 1 then
+    let step = max 0 (min current_step (List.length states )) in
+    if step < (List.length states)  then
       let state = List.nth states step in
       init_window rect_target;
       draw_state state draw_form;
@@ -346,7 +346,7 @@ let option_step_by_step states draw_form rect_target prog check =
       
       (* Printf.printf "Point %d: %s\n" current_step; *)
       
-      if step = List.length states - 1 then
+      if step = List.length states then
         if check then
           draw_text 10 (!height - 50) "Cible atteinte."
         else
@@ -354,7 +354,7 @@ let option_step_by_step states draw_form rect_target prog check =
 
     match handle_key_event () with
     | `StepForward -> 
-        if current_step < List.length states - 2 then loop (current_step + 1)
+        if current_step < List.length states - 1 then loop (current_step + 1)
         else draw_text 10 (!height - 70) "Derniere etape atteinte."
     | `StepBackward -> 
         if current_step > 1 then loop (current_step - 1)
